@@ -1,37 +1,146 @@
-# esclientrhlDemo
-
-#### 介绍
-esclientrhl的使用示例
-
-#### 软件架构
-软件架构说明
+# esclientrhl使用说明
 
 
-#### 安装教程
+## 快速入门
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+### 步骤一、pom添加maven依赖
+```
+<properties>
+    <java.version>1.8</java.version>
+    <elasticsearch.version>7.3.1</elasticsearch.version>
+</properties>
+<dependency>
+    <groupId>cn.zxporz</groupId>
+    <artifactId>esclientrhl</artifactId>
+    <version>7.0.2</version>
+</dependency>
+```
+### 步骤二、springboot启动类添加注解`EnableESTools`
 
-#### 使用说明
+```
+@SpringBootApplication
+@EnableESTools(basePackages={"org.zxp.esclientrhl.demo.repository"},entityPath = {"org.zxp.esclientrhl.demo.domain"})
+public class EsclientrhlDemoApplication
+```
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+### 步骤三、创建es索引对应的实体类
+```
+@ESMetaData(indexName = "index_demo",number_of_shards = 3,number_of_replicas = 0,printLog = true)
+public class IndexDemo {
+    @ESID
+    private String proposal_no;
+    @ESMapping(datatype = DataType.keyword_type)
+    private String risk_code;
+    @ESMapping(datatype = DataType.text_type)
+    private String risk_name;
+    @ESMapping(keyword = true)
+    private String business_nature;
+    @ESMapping(datatype = DataType.text_type)
+    private String business_nature_name;
+    private String appli_code;//可以用默认值，这样会有appli_code.keyword可以直接搜
+    @ESMapping(suggest = true)
+    private String appli_name;
+    private String insured_code;
+    @ESMapping(ngram = true)
+    private String insured_name;
+    @ESMapping(datatype = DataType.date_type)
+    private Date operate_date;
+    @ESMapping(datatype = DataType.text_type)
+    private String operate_date_format;
+    @ESMapping(datatype = DataType.date_type)
+    private Date start_date;
+    @ESMapping(datatype = DataType.date_type)
+    private Date end_date;
+    @ESMapping(datatype = DataType.double_type)
+    private double sum_amount;
+    @ESMapping(datatype = DataType.double_type)
+    private double sum_premium;
+    @ESMapping(datatype = DataType.keyword_type)
+    private String com_code;
+……
+```
 
-#### 参与贡献
+### 步骤四、创建Repository接口
+```
+public interface IndexDemoRepository extends ESCRepository<IndexDemo,String> {
+}
+```
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+### 步骤五、调用
+```
+@RestController
+public class IndexDemoController {
+    @Autowired
+    private IndexDemoRepository indexDemoRepository;
+    //http://127.0.0.1:8888/demo/add
+    @GetMapping("/demo/add")
+    public String add() throws Exception {
+        IndexDemo indexDemo = new IndexDemo();
+        indexDemo.setProposal_no("1");
+        indexDemo.setAppli_name("a1");
+        indexDemo.setRisk_code("aa1");
+        indexDemo.setSum_premium(1);
+        indexDemoRepository.save(indexDemo);
+        return "新增成功";
+    }
+    //http://127.0.0.1:8888/demo/add_list
+    @GetMapping("/demo/add_list")
+    public String addList() throws Exception {
+        IndexDemo indexDemo2 = new IndexDemo();
+        indexDemo2.setProposal_no("2");
+        indexDemo2.setAppli_name("a2");
+        indexDemo2.setRisk_code("aa2");
+        indexDemo2.setSum_premium(2);
+
+        IndexDemo indexDemo3 = new IndexDemo();
+        indexDemo3.setProposal_no("3");
+        indexDemo3.setAppli_name("a3");
+        indexDemo3.setRisk_code("aa3");
+        indexDemo3.setSum_premium(3);
+        indexDemoRepository.save(Arrays.asList(indexDemo2,indexDemo3));
+        return "新增成功";
+    }
+    //http://127.0.0.1:8888/demo/update
+    @GetMapping("/demo/update")
+    public String update() throws Exception {
+        IndexDemo indexDemo = new IndexDemo();
+        indexDemo.setProposal_no("1");
+        indexDemo.setAppli_name("a999999");
+        indexDemo.setRisk_code("aa9999999");
+        indexDemo.setSum_premium(99999);
+        indexDemoRepository.update(indexDemo);
+        return "修改成功";
+    }
+
+    //http://127.0.0.1:8888/demo/delete
+    @GetMapping("/demo/delete")
+    public String delete() throws Exception {
+        IndexDemo indexDemo = new IndexDemo();
+        indexDemo.setProposal_no("1");
+        indexDemo.setAppli_name("a999999");
+        indexDemo.setRisk_code("a9999999");
+        indexDemo.setSum_premium(99999);
+        indexDemoRepository.delete(indexDemo);
+        return "删除成功";
+    }
+    //http://127.0.0.1:8888/demo/query
+    @GetMapping("/demo/query")
+    public List<IndexDemo> query() throws Exception {
+        List<IndexDemo> search = indexDemoRepository.search(QueryBuilders.matchAllQuery());
+        return search;
+    }
+}
+```
+
+###  测试访问
+1. 访问http://127.0.0.1:8888/demo/add，增加一条数据
+1. 访问http://127.0.0.1:8888/demo/add_list，增加多条数据
+1. 访问http://127.0.0.1:8888/demo/query，查询列表
+1. 访问http://127.0.0.1:8888/demo/update，修改一条数据
+1. 访问http://127.0.0.1:8888/demo/query，查询列表
+1. 访问http://127.0.0.1:8888/demo/delete，删除一条数据
+1. 访问http://127.0.0.1:8888/demo/query，查询列表
 
 
-#### 特技
+## 更多使用demo见`test`包下代码
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
