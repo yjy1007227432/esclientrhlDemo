@@ -18,14 +18,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.zxp.esclientrhl.demo.domain.IndexDemo;
 import org.zxp.esclientrhl.enums.SqlFormat;
 import org.zxp.esclientrhl.repository.*;
-import org.zxp.esclientrhl.util.*;
+import org.zxp.esclientrhl.repository.response.ScrollResponse;
+import org.zxp.esclientrhl.util.Constant;
+import org.zxp.esclientrhl.util.JsonUtils;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @program: esdemo
- * @description: ${description}
+ * @description: 普通增删改查
  * @author: X-Pacific zhang
  * @create: 2019-02-25 16:47
  **/
@@ -33,331 +37,326 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
     @Autowired
     ElasticsearchTemplate<IndexDemo, String> elasticsearchTemplate;
 
-//    @Test
-//    public void testsave() throws Exception {
-//        Main2 main1 = new Main2();
-//        main1.setProposal_no("1111");
-//        main1.setBusiness_nature_name("J01-002-03");
-//        Main2 main2 = new Main2();
-//        main2.setProposal_no("2222");
-//        main2.setBusiness_nature_name("J01-002-04");
-//        Main2 main3 = new Main2();
-//        main3.setProposal_no("3333");
-//        main3.setBusiness_nature_name("J01-002-06");
-//        Main2 main4 = new Main2();
-//        main4.setProposal_no("4444");
-//        main4.setBusiness_nature_name("J01-002-07");
-//        elasticsearchTemplate.save(Arrays.asList(main1, main2, main3, main4));
-//    }
-//
-//    @Test
-//    public void testDate() throws Exception {
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-//        Date now = new Date();
-//
-//
-//        Main2 main1 = new Main2();
-//        main1.setProposal_no("zxptestdate");
-//        main1.setOperate_date(now);
-//        main1.setOperate_date_format(sdf.format(now));
-//        elasticsearchTemplate.save(main1);
-//        Thread.sleep(1000);
-//        Main2 mresult = elasticsearchTemplate.getById("zxptestdate",Main2.class);
-//        System.out.println("返回的Operate_date"+mresult.getOperate_date());
-//        System.out.println("返回的Operate_date格式化后"+sdf.format(mresult.getOperate_date()));
-//        System.out.println("返回的Operate_date_format"+mresult.getOperate_date_format());
-//    }
-//
-//    @Test
-//    public void testsave2() throws Exception {
-////        Main2 main1 = new Main2();
-////        main1.setProposal_no("main1123123123");
-////        main1.setAppli_code("123");
-////        main1.setAppli_name("2");
-////        main1.setRisk_code("0501");
-////        main1.setSum_premium(100);
-////        main1.setOperate_date(new Date());
-////        elasticsearchTemplate.save(main1);
-//
-//
-//        QueryBuilder qb = QueryBuilders.termQuery("proposal_no", "main1123123123");
-//        elasticsearchTemplate.search(qb, Main2.class).forEach(s  -> System.out.println(s));
-//    }
-//
-//
-//    @Test
-//    public void testsavelist() throws Exception {
-//        List<Main2> list = new ArrayList<>();
-//        Main2 main1 = new Main2();
-//        main1.setProposal_no("main99");
-//        main1.setAppli_name("456");
-//        main1.setRisk_code("0101");
-//        main1.setSum_premium(1);
-//        Main2 main2 = new Main2();
-//        main2.setProposal_no("main2");
-//        main2.setAppli_name("456");
-//        main2.setSum_premium(2);
-//        main2.setRisk_code("0102");
-//        Main2 main3 = new Main2();
-//        main3.setProposal_no("main3");
-//        main3.setRisk_code("0103");
-//        main3.setSum_premium(3);
-//        main3.setAppli_name("456");
-//        Main2 main4 = new Main2();
-//        main4.setProposal_no("33333333");
-//        main4.setRisk_code("0103");
-//        main4.setSum_premium(4);
-//        main4.setAppli_name("123");
-//        Main2 main5 = new Main2();
-//        main5.setProposal_no("11111111");
-//        main5.setRisk_code("0103");
-//        main5.setAppli_name("123");
-//        main5.setSum_premium(5);
-//        Main2 main6 = new Main2();
-//        main6.setProposal_no("22222222");
-//        main6.setRisk_code("0103");
-//        main6.setAppli_name("123");
-//        main6.setSum_premium(6);
-//        list.add(main1);
-//        list.add(main2);
-//        list.add(main3);
-//        list.add(main4);
-//        list.add(main5);
-//        list.add(main6);
-//        elasticsearchTemplate.save(list);
-//    }
-//
-//    @Test
-//    public void testUpdate() throws Exception {
-//        Main2 main1 = new Main2();
-//        main1.setProposal_no("main2");
-//        main1.setInsured_code("123");
-//        elasticsearchTemplate.update(main1);
-//    }
-//
-//    @Test
-//    public void testUpdateBatch() throws Exception {
-//        Main2 main1 = new Main2();
-//        main1.setSum_amount(10000);
-//        elasticsearchTemplate.batchUpdate(QueryBuilders.matchQuery("appli_name", "123"), main1, Main2.class, 30, true);
-//
-//        Thread.sleep(9000L);
-//    }
-//
-//
-//    @Test
-//    public void testCoverUpdate() throws Exception {
-//        Main2 main1 = new Main2();
-//        main1.setProposal_no("main1");
-//        main1.setInsured_code("123");
-//        elasticsearchTemplate.updateCover(main1);
-//    }
-//
-//
-//    @Test
-//    public void testDelete() throws Exception {
-//        Main2 main1 = new Main2();
-//        main1.setProposal_no("main1");
-//        main1.setInsured_code("123");
-//        elasticsearchTemplate.delete(main1);
-//
-//        elasticsearchTemplate.deleteById("main1", Main2.class);
-//
-//    }
-//
-//    @Test
-//    public void testExists() throws Exception {
-//        Main2 main1 = new Main2();
-//        main1.setProposal_no("main1");
-//        main1.setInsured_code("123");
-//        boolean exists = elasticsearchTemplate.exists("main1", Main2.class);
-//        System.out.println(exists);
-//    }
-//
-//
-//    @Test
-//    public void testOri() throws Exception {
-//        SearchRequest searchRequest = new SearchRequest(new String[]{"index"});
-//        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-//        searchSourceBuilder.query(new MatchAllQueryBuilder());
-//        searchSourceBuilder.from(0);
-//        searchSourceBuilder.size(10);
-//        searchRequest.source(searchSourceBuilder);
-//        SearchResponse searchResponse = elasticsearchTemplate.search(searchRequest);
-//
-//        SearchHits hits = searchResponse.getHits();
-//        SearchHit[] searchHits = hits.getHits();
-//        for (SearchHit hit : searchHits) {
-//            Main2 t = JsonUtils.string2Obj(hit.getSourceAsString(), Main2.class);
-//            System.out.println(t);
-//        }
-//    }
-//
-//
-//    @Test
-//    public void testSearch() throws Exception {
-//        List<Main2> main2List = elasticsearchTemplate.search(new MatchAllQueryBuilder(), Main2.class,"inde*");
-//        System.out.println(main2List.size());
-//        main2List.forEach(main2 -> System.out.println(main2));
-//    }
-//
-//    @Test
-//    public void testSearchMore() throws Exception {
-//        List<Main2> main2List = elasticsearchTemplate.searchMore(new MatchAllQueryBuilder(), 7, Main2.class);
-//        System.out.println(main2List.size());
-//        main2List.forEach(main2 -> System.out.println(main2));
-//    }
-//
-//
-//    @Test
-//    public void ttttt() {
-//        SearchRequest searchRequest = new SearchRequest("index");
-//        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-//        searchSourceBuilder.query(new MatchAllQueryBuilder());
-////        searchSourceBuilder.from(0);
-////        searchSourceBuilder.size(Constant.DEFALT_PAGE_SIZE);
-//        searchRequest.source(searchSourceBuilder);
-//    }
-//
-//    @Test
-//    public void testsaveHighlight() throws Exception {
-//        Main2 main1 = new Main2();
-//        main1.setProposal_no("main1123123123");
-//        main1.setAppli_code("123");
-//        main1.setAppli_name("一二三四五唉收到弄得你阿斯达岁的阿斯蒂芬斯蒂芬我单位代缴我佛非我方是的佛挡杀佛第三方东方闪电凡事都红is都if觉得搜房水电费啥都if结算单佛第四届发送到");
-//        main1.setRisk_code("0501");
-//        main1.setSum_premium(100);
-//        elasticsearchTemplate.save(main1);
-//    }
-//
-//    @Test
-//    public void testSearch2() throws Exception {
-//        int currentPage = 1;
-//        int pageSize = 10;
-//        //分页
-//        PageSortHighLight psh = new PageSortHighLight(currentPage, pageSize);
-//        //排序
-//        String sorter = "proposal_no.keyword";
-//        Sort.Order order = new Sort.Order(SortOrder.ASC, sorter);
-//        psh.setSort(new Sort(order));
-//        //定制高亮，如果定制了高亮，返回结果会自动替换字段值为高亮内容
-//        psh.setHighLight(new HighLight().field("appli_name"));
-//        //可以单独定义高亮的格式
-//        //new HighLight().setPreTag("<em>");
-//        //new HighLight().setPostTag("</em>");
-//        PageList<Main2> pageList = new PageList<>();
-////        pageList = elasticsearchTemplate.search(QueryBuilders.matchQuery("appli_name","我"), psh, Main2.class);
-//        pageList = elasticsearchTemplate.search(new MatchAllQueryBuilder(), psh, Main2.class);
-//        pageList.getList().forEach(main2 -> System.out.println(main2));
-//
-//
-////        HighLight highLight = new HighLight();
-////        highLight.setPreTag("<span style=\"color:red\">");
-////        highLight.setPostTag("</span>");
-////        highLight.field("appli_code").field("appli_name");
-////
-////        psh.setHighLight(highLight);
-////        PageList<Main2> pageList = new PageList<>();
-////        pageList = elasticsearchTemplate.search(
-////                QueryBuilders.matchQuery("appli_name","中男儿"),
-////                psh, Main2.class);
-//    }
-//
-//
-//    @Test
-//    public void testCount() throws Exception {
-//        long count = elasticsearchTemplate.count(new MatchAllQueryBuilder(), Main2.class);
-//        System.out.println(count);
-//    }
-//
-//
-//    @Test
-//    public void testScroll() throws Exception {
-//        //默认scroll镜像保留2小时
-//        //List<Main2> main2List = elasticsearchTemplate.scroll(new MatchAllQueryBuilder(), Main2.class);
-//        //main2List.forEach(main2 -> System.out.println(main2));
-//
-//        //指定scroll镜像保留5小时
-//        ScrollResponse<Main2> scroll = elasticsearchTemplate.createScroll(new MatchAllQueryBuilder(), Main2.class, 5L, 10000);
-//        scroll.getList().forEach(System.out::println);
-//        ScrollResponse<Main2> scrollResponse = elasticsearchTemplate.queryScroll(Main2.class, 5L, scroll.getScrollId());
-//        scrollResponse.getList().forEach(System.out::println);
-//
-//
-//        ClearScrollResponse clearScrollResponse = elasticsearchTemplate.clearScroll(scroll.getScrollId());
-//        System.out.println(clearScrollResponse.isSucceeded());
-//    }
-//
-//
-//    @Test
-//    public void testCompletionSuggest() throws Exception {
-//        List<String> list = elasticsearchTemplate.completionSuggest("appli_name", "1", Main2.class);
-//        list.forEach(main2 -> System.out.println(main2));
-//    }
-//
-//
-//    @Test
-//    public void testSearchByID() throws Exception {
-//        Main2 main2 = elasticsearchTemplate.getById("main2", Main2.class);
-//        System.out.println(main2);
-//    }
-//
-//    @Test
-//    public void testMGET() throws Exception {
-//        String[] list = {"main2", "main3"};
-//        List<Main2> listResult = elasticsearchTemplate.mgetById(list, Main2.class);
-//        listResult.forEach(main -> System.out.println(main));
-//    }
-//
-//    @Test
-//    public void testBatchSveAndUpdate() throws Exception {
-//        Main2 main1 = new Main2();
-//        main1.setProposal_no("aaa");
-//        main1.setBusiness_nature_name("aaaaaa2");
-//        Main2 main2 = new Main2();
-//        main2.setProposal_no("bbb");
-//        main2.setBusiness_nature_name("aaaaaa2");
-//        Main2 main3 = new Main2();
-//        main3.setProposal_no("ccc");
-//        main3.setBusiness_nature_name("aaaaaa2");
-//        Main2 main4 = new Main2();
-//        main4.setProposal_no("ddd");
-//        main4.setBusiness_nature_name("aaaaaa2");
-//        elasticsearchTemplate.bulkUpdateBatch(Arrays.asList(main1, main2, main3, main4));
-//    }
-//
-//    @Test
-//    public void testSearchSource() throws Exception {
-//        PageSortHighLight psh = new PageSortHighLight(1, 50);
-////        String[] includes = {"proposal_no"};
-////        psh.setIncludes(includes);
-////        String[] excludes = {"business_nature_name"};
-////        psh.setExcludes(excludes);
-//        String[] includes = {"risk*"};
-//        List<Main2> list = elasticsearchTemplate.search(new MatchAllQueryBuilder(), psh, Main2.class).getList();
-//        list.forEach(s -> System.out.println(s));
-//    }
-//
-//
-//    @Test
-//    public void testURI() throws Exception {
-//        long l1 = System.currentTimeMillis();
-////        List<Main2> list = elasticsearchTemplate.searchUri("q=aaa",Main2.class);
-//
-//        List<Main2> list = elasticsearchTemplate.searchUri("", Main2.class);
-//        list.forEach(s -> System.out.println(s));
-//        long l2 = System.currentTimeMillis();
-//        System.out.println(l2 - l1);
-//    }
-//
-//
-//    @Test
-//    public void testSQL() throws Exception {
-//        String result = elasticsearchTemplate.queryBySQL("SELECT * FROM index ORDER BY sum_premium DESC LIMIT 5", SqlFormat.TXT);
-////       String result = elasticsearchTemplate.queryBySQL("SELECT count(*) FROM index ", SqlFormat.TXT);
-////       String result = elasticsearchTemplate.queryBySQL("SELECT risk_code,sum(sum_premium) FROM index group by risk_code", SqlFormat.TXT);
-//        System.out.println(result);
-//    }
+    /**
+     * 测试保存一条数据
+     * @throws Exception
+     */
+    @Test
+    public void testSaveOne() throws Exception {
+        IndexDemo main1 = new IndexDemo();
+        main1.setProposal_no("main1123123123");
+        main1.setAppli_code("123");
+        main1.setAppli_name("2");
+        main1.setRisk_code("0501");
+        main1.setSum_premium(100);
+        main1.setOperate_date(new Date());
+        elasticsearchTemplate.save(main1);
+        QueryBuilder qb = QueryBuilders.termQuery("proposal_no", "main1123123123");
+        elasticsearchTemplate.search(qb, IndexDemo.class).forEach(s  -> System.out.println(s));
+    }
+
+    /**
+     * 测试批量增加
+     * @throws Exception
+     */
+    @Test
+    public void testSaveList() throws Exception {
+        IndexDemo main1 = new IndexDemo();
+        main1.setProposal_no("1111");
+        main1.setBusiness_nature_name("J01-002-03");
+        IndexDemo main2 = new IndexDemo();
+        main2.setProposal_no("2222");
+        main2.setBusiness_nature_name("J01-002-04");
+        IndexDemo main3 = new IndexDemo();
+        main3.setProposal_no("3333");
+        main3.setBusiness_nature_name("J01-002-06");
+        IndexDemo main4 = new IndexDemo();
+        main4.setProposal_no("4444");
+        main4.setBusiness_nature_name("J01-002-07");
+        elasticsearchTemplate.save(Arrays.asList(main1, main2, main3, main4));
+    }
+
+    /**
+     * 测试日期类型
+     * @throws Exception
+     */
+    @Test
+    public void testDate() throws Exception {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+        Date now = new Date();
+        IndexDemo main1 = new IndexDemo();
+        main1.setProposal_no("zxptestdate");
+        main1.setOperate_date(now);
+        main1.setOperate_date_format(sdf.format(now));
+        elasticsearchTemplate.save(main1);
+        Thread.sleep(1000);
+        IndexDemo mresult = elasticsearchTemplate.getById("zxptestdate",IndexDemo.class);
+        System.out.println("返回的Operate_date"+mresult.getOperate_date());
+        System.out.println("返回的Operate_date格式化后"+sdf.format(mresult.getOperate_date()));
+        System.out.println("返回的Operate_date_format"+mresult.getOperate_date_format());
+    }
+
+    /**
+     * 修改（按照有值字段更新索引）
+     * @throws Exception
+     */
+    @Test
+    public void testUpdate() throws Exception {
+        IndexDemo main1 = new IndexDemo();
+        main1.setProposal_no("main2");
+        main1.setInsured_code("123");
+        elasticsearchTemplate.update(main1);
+    }
+
+    /**
+     * 批量更新（按照有值字段更新索引）
+     * @throws Exception
+     */
+    @Test
+    public void testUpdateBatch() throws Exception {
+        IndexDemo main1 = new IndexDemo();
+        main1.setSum_amount(10000);
+        elasticsearchTemplate.batchUpdate(QueryBuilders.matchQuery("appli_name", "123"), main1, IndexDemo.class, 30, true);
+        Thread.sleep(9000L);
+    }
+
+    /**
+     * 覆盖更新索引
+     * @throws Exception
+     */
+    @Test
+    public void testCoverUpdate() throws Exception {
+        IndexDemo main1 = new IndexDemo();
+        main1.setProposal_no("main1");
+        main1.setInsured_code("123");
+        elasticsearchTemplate.updateCover(main1);
+    }
+
+    /**
+     *根据id删除
+     * @throws Exception
+     */
+    @Test
+    public void testDelete() throws Exception {
+        IndexDemo main1 = new IndexDemo();
+        main1.setProposal_no("main1");
+        main1.setInsured_code("123");
+        elasticsearchTemplate.delete(main1);
+        elasticsearchTemplate.deleteById("main1", IndexDemo.class);
+    }
+
+    /**
+     * 是否存在（根据id判断）
+     * @throws Exception
+     */
+    @Test
+    public void testExists() throws Exception {
+        IndexDemo main1 = new IndexDemo();
+        main1.setProposal_no("main1");
+        main1.setInsured_code("123");
+        boolean exists = elasticsearchTemplate.exists("main1", IndexDemo.class);
+        System.out.println(exists);
+    }
+
+    /**
+     * 原始api查询（SearchRequest）
+     * @throws Exception
+     */
+    @Test
+    public void testOriSearch() throws Exception {
+        SearchRequest searchRequest = new SearchRequest(new String[]{"index_demo"});
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(new MatchAllQueryBuilder());
+        searchSourceBuilder.from(0);
+        searchSourceBuilder.size(10);
+        searchRequest.source(searchSourceBuilder);
+        SearchResponse searchResponse = elasticsearchTemplate.search(searchRequest);
+
+        SearchHits hits = searchResponse.getHits();
+        SearchHit[] searchHits = hits.getHits();
+        for (SearchHit hit : searchHits) {
+            IndexDemo t = JsonUtils.string2Obj(hit.getSourceAsString(), IndexDemo.class);
+            System.out.println(t);
+        }
+    }
+
+    /**
+     * 非分页查询，指定最大返回条数
+     * @throws Exception
+     */
+    @Test
+    public void testSearchMore() throws Exception {
+        List<IndexDemo> main2List = elasticsearchTemplate.searchMore(new MatchAllQueryBuilder(), 7, IndexDemo.class);
+        System.out.println(main2List.size());
+        main2List.forEach(main2 -> System.out.println(main2));
+    }
+
+    /**
+     * 原始查询，分页
+     */
+    @Test
+    public void testOriPageSearch() {
+        SearchRequest searchRequest = new SearchRequest("index_demo");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(new MatchAllQueryBuilder());
+        searchSourceBuilder.from(0);
+        searchSourceBuilder.size(Constant.DEFALT_PAGE_SIZE);
+        searchRequest.source(searchSourceBuilder);
+    }
+
+    /**
+     * 为高级搜索准备数据
+     * @throws Exception
+     */
+    @Test
+    public void testSaveForHighlight() throws Exception {
+        IndexDemo main1 = new IndexDemo();
+        main1.setProposal_no("main1123123123");
+        main1.setAppli_code("123");
+        main1.setAppli_name("一二三四五唉收到弄得你阿斯达岁的阿斯蒂芬斯蒂芬我单位代缴我佛非我方是的佛挡杀佛第三方东方闪电凡事都红is都if觉得搜房水电费啥都if结算单佛第四届发送到");
+        main1.setRisk_code("0501");
+        main1.setSum_premium(100);
+        elasticsearchTemplate.save(main1);
+    }
+
+    /**
+     * 高级搜索 分页、高亮、排序
+     * @throws Exception
+     */
+    @Test
+    public void testSearchPageSortHighLight() throws Exception {
+        int currentPage = 1;
+        int pageSize = 10;
+        //分页
+        PageSortHighLight psh = new PageSortHighLight(currentPage, pageSize);
+        //排序
+        String sorter = "proposal_no";
+        Sort.Order order = new Sort.Order(SortOrder.ASC, sorter);
+        psh.setSort(new Sort(order));
+        //定制高亮，如果定制了高亮，返回结果会自动替换字段值为高亮内容
+        psh.setHighLight(new HighLight().field("appli_name"));
+        //可以单独定义高亮的格式
+        //new HighLight().setPreTag("<em>");
+        //new HighLight().setPostTag("</em>");
+        PageList<IndexDemo> pageList = new PageList<>();
+        pageList = elasticsearchTemplate.search(QueryBuilders.matchQuery("appli_name","我"), psh, IndexDemo.class);
+        pageList.getList().forEach(main2 -> System.out.println(main2));
+
+
+        //HighLight highLight = new HighLight();
+        //highLight.setPreTag("<span style=\"color:red\">");
+        //highLight.setPostTag("</span>");
+        //highLight.field("appli_code").field("appli_name");
+        //
+        //psh.setHighLight(highLight);
+        //PageList<IndexDemo> pageList = new PageList<>();
+        //pageList = elasticsearchTemplate.search(
+        //        QueryBuilders.matchQuery("appli_name","中男儿"),
+        //        psh, IndexDemo.class);
+    }
+
+    /**
+     * 查询数量
+     * @throws Exception
+     */
+    @Test
+    public void testCount() throws Exception {
+        long count = elasticsearchTemplate.count(new MatchAllQueryBuilder(), IndexDemo.class);
+        System.out.println(count);
+    }
+
+    /**
+     * Scroll查询 打镜像 大批量数据查询
+     * @throws Exception
+     */
+    @Test
+    public void testScroll() throws Exception {
+        //指定scroll镜像保留5小时
+        ScrollResponse<IndexDemo> scroll = elasticsearchTemplate.createScroll(new MatchAllQueryBuilder(), IndexDemo.class, 5L, 10000);
+        scroll.getList().forEach(System.out::println);
+        ScrollResponse<IndexDemo> scrollResponse = elasticsearchTemplate.queryScroll(IndexDemo.class, 5L, scroll.getScrollId());
+        scrollResponse.getList().forEach(System.out::println);
+
+        //清除scroll
+        ClearScrollResponse clearScrollResponse = elasticsearchTemplate.clearScroll(scroll.getScrollId());
+        System.out.println(clearScrollResponse.isSucceeded());
+    }
+
+    /**
+     * completionSuggest
+     * @throws Exception
+     */
+    @Test
+    public void testCompletionSuggest() throws Exception {
+        List<String> list = elasticsearchTemplate.completionSuggest("appli_name", "1", IndexDemo.class);
+        list.forEach(main2 -> System.out.println(main2));
+    }
+
+    /**
+     * 根据id查询
+     * @throws Exception
+     */
+    @Test
+    public void testSearchByID() throws Exception {
+        IndexDemo main2 = elasticsearchTemplate.getById("main2", IndexDemo.class);
+        System.out.println(main2);
+    }
+
+    /**
+     * 批量根据id查询
+     * @throws Exception
+     */
+    @Test
+    public void testMGET() throws Exception {
+        String[] list = {"main2", "main3"};
+        List<IndexDemo> listResult = elasticsearchTemplate.mgetById(list, IndexDemo.class);
+        listResult.forEach(main -> System.out.println(main));
+    }
+
+    /**
+     * 更新索引集合（分批方式，提升性能，防止es服务内存溢出，每批默认5000条数据）
+     * @throws Exception
+     */
+    @Test
+    public void testBatchSveAndUpdate() throws Exception {
+        IndexDemo main1 = new IndexDemo();
+        main1.setProposal_no("aaa");
+        main1.setBusiness_nature_name("aaaaaa2");
+        IndexDemo main2 = new IndexDemo();
+        main2.setProposal_no("bbb");
+        main2.setBusiness_nature_name("aaaaaa2");
+        IndexDemo main3 = new IndexDemo();
+        main3.setProposal_no("ccc");
+        main3.setBusiness_nature_name("aaaaaa2");
+        IndexDemo main4 = new IndexDemo();
+        main4.setProposal_no("ddd");
+        main4.setBusiness_nature_name("aaaaaa2");
+        main4.setCom_code("aa");
+        elasticsearchTemplate.bulkUpdateBatch(Arrays.asList(main1, main2, main3, main4));
+    }
+
+    /**
+     * 通过uri querystring进行查询
+     * @throws Exception
+     */
+    @Test
+    public void testURI() throws Exception {
+        //"q=sum_premium:100"查询sum_premium为100的结果
+        List<IndexDemo> list = elasticsearchTemplate.searchUri("q=proposal_no:2", IndexDemo.class);
+        list.forEach(s -> System.out.println(s));
+    }
+
+    /**
+     * 通过sql进行查询
+     * @throws Exception
+     */
+    @Test
+    public void testSQL() throws Exception {
+        String result = elasticsearchTemplate.queryBySQL("SELECT * FROM index_demo where proposal_no = '2'", SqlFormat.TXT);
+//       String result = elasticsearchTemplate.queryBySQL("SELECT count(*) FROM index ", SqlFormat.TXT);
+//       String result = elasticsearchTemplate.queryBySQL("SELECT risk_code,sum(sum_premium) FROM index group by risk_code", SqlFormat.TXT);
+        System.out.println(result);
+    }
 //
 //    @Test
 //    public void testSaveTemplate() throws Exception {

@@ -3,6 +3,9 @@
 
 ## 快速入门
 
+### 前置准备
+本地部署一个es服务，端口默认9200，即访问http://localhost:9200可以访问
+
 ### 步骤一、pom添加maven依赖
 ```
 <properties>
@@ -22,6 +25,13 @@
 @EnableESTools(basePackages={"org.zxp.esclientrhl.demo.repository"},entityPath = {"org.zxp.esclientrhl.demo.domain"})
 public class EsclientrhlDemoApplication
 ```
+
+### 配置`application.properties`
+```
+server.port=8888
+elasticsearch.host=127.0.0.1:9200
+```
+
 
 ### 步骤三、创建es索引对应的实体类
 ```
