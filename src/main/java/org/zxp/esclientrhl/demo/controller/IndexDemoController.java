@@ -77,4 +77,12 @@ public class IndexDemoController {
         List<IndexDemo> search = indexDemoRepository.search(QueryBuilders.matchAllQuery());
         return search;
     }
+
+
+    @GetMapping("/demo/query2")
+    public List<IndexDemo> query2() throws Exception {
+
+        List<IndexDemo> search = indexDemoRepository.search(QueryBuilders.matchAllQuery());
+        return search;
+    }
 }

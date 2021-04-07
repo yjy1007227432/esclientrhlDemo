@@ -154,3 +154,16 @@ public class IndexDemoController {
 
 ## 更多使用demo见`test`包下代码
 
+1. TestCRUD 普通增删改查
+1. TestAggs 聚合的使用
+1. TestIndex 索引管理
+1. TestLowLevelClient LowLevelClient的使用
+1. TestNewClient 直接使用RestHighLevelClient操作
+1. TestNested 嵌套对象的使用
+1. TestQueryBuilder 各种QueryBuilder的使用
+1. TestRepository Repository的使用
+1. TestAliases 别名的使用
+1. TestRollover Rollover的使用
+1. TestSugg 搜索建议的使用
+1. TestGeo GEO的使用
+

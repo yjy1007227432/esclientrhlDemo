@@ -33,7 +33,7 @@ public class IndexDemo {
     private String insured_name;
     @ESMapping(datatype = DataType.date_type)
     private Date operate_date;
-    @ESMapping(datatype = DataType.text_type)
+    @ESMapping(datatype = DataType.keyword_type)
     private String operate_date_format;
     @ESMapping(datatype = DataType.date_type)
     private Date start_date;
