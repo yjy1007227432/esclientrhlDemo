@@ -1,6 +1,6 @@
 # esclientrhl使用说明
 
-这个demo集成了[esclientRHL](https://gitee.com/zxporz/ESClientRHL)，是个简单的springboot工程，只要拥有一个es服务和本demo就可以完成客户端与es的交互
+这个demo集成了[ESClientRHL](https://gitee.com/zxporz/ESClientRHL)，是个简单的springboot工程，只要拥有一个es服务和本demo就可以完成客户端与es的交互
 
 单测目录中还包含各种esclientRHL的高级功能使用示例
 
