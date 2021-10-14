@@ -5,6 +5,7 @@
 
 ### 前置准备
 本地部署一个es服务，端口默认9200，即访问http://localhost:9200可以访问
+
 可以下载本例中的es版本[7.3.1](https://www.elastic.co/cn/downloads/past-releases/elasticsearch-7-3-1)
 
 
