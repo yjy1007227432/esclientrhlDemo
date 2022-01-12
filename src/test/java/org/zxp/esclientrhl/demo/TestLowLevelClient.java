@@ -10,7 +10,11 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.zxp.esclientrhl.demo.domain.IndexDemo;
+import org.zxp.esclientrhl.demo.service.ElasticsearchTemplateNew;
 import org.zxp.esclientrhl.repository.ElasticsearchTemplate;
+
+import java.util.List;
 
 /**
  * @program: LowLevelClient的使用
@@ -20,8 +24,9 @@ import org.zxp.esclientrhl.repository.ElasticsearchTemplate;
  **/
 public class TestLowLevelClient extends EsclientrhlDemoApplicationTests {
 
+
     @Autowired
-    ElasticsearchTemplate elasticsearchTemplate;
+    ElasticsearchTemplateNew elasticsearchTemplateNew;
 
     @Test
     public void testLow() throws Exception {
@@ -29,12 +34,20 @@ public class TestLowLevelClient extends EsclientrhlDemoApplicationTests {
         request.setEntity(new NStringEntity(
                 "{\"query\":{\"match_all\":{\"boost\":1.0}}}",
                 ContentType.APPLICATION_JSON));
-        Response response = elasticsearchTemplate.request(request);
+        Response response = elasticsearchTemplateNew.request(request);
         RequestLine requestLine = response.getRequestLine();
         HttpHost host = response.getHost();
         int statusCode = response.getStatusLine().getStatusCode();
         Header[] headers = response.getHeaders();
         String responseBody = EntityUtils.toString(response.getEntity());
         System.out.println(responseBody);
+    }
+
+
+    @Test
+    public void test() throws Exception {
+        List<IndexDemo> result = elasticsearchTemplateNew.queryBySQL("select * from index_demo",IndexDemo.class);
+        System.out.println();
+
     }
 }
