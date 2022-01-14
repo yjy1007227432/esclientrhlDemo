@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.zxp.esclientrhl.demo.domain.IndexDemo;
 import org.zxp.esclientrhl.demo.service.ElasticsearchTemplateNew;
-import org.zxp.esclientrhl.repository.ElasticsearchTemplate;
 
 import java.util.List;
 

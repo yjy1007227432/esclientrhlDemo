@@ -4,8 +4,15 @@ package org.zxp.esclientrhl.demo.controller;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.settings.Settings;
@@ -13,11 +20,11 @@ import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.zxp.esclientrhl.demo.domain.IndexDemo;
+import org.zxp.esclientrhl.demo.service.ElasticsearchTemplateNew;
+import org.zxp.esclientrhl.enums.SqlFormat;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Date;
 import java.util.Optional;
 
 @RestController
@@ -25,35 +32,14 @@ public class commonCURDController {
 
 
     @Autowired
-    RestHighLevelClient client;
+    private RestHighLevelClient client;
 
 
 
-    @GetMapping("/es/commonadd")
-    public String commonAdd(HttpServletRequest request)  {
-        String index = request.getParameter("index");
-        String source = request.getParameter("source");
-        IndexRequest indexRequest = new IndexRequest(index);
-        IndexDemo m1 = new IndexDemo();
-        m1.setProposal_no("111222333aaabbbccc_01");
-        m1.setRisk_code("0101");
-        m1.setOperate_date(new Date());
-
-        indexRequest.source(source, XContentType.JSON);
-        IndexResponse indexResponse = null;
-        try {
-            indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (indexResponse.getResult() == DocWriteResponse.Result.CREATED) {
-            System.out.println("创建成功");
-        } else if (indexResponse.getResult() == DocWriteResponse.Result.UPDATED) {
-            System.out.println("修改成功");
-        }
-        return null;
-    }
-
+    /**
+     * 创建索引
+     * @param request
+     */
 
     @GetMapping("/es/createIndex")
     public void createIndex(HttpServletRequest request)  {
@@ -77,4 +63,120 @@ public class commonCURDController {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 查看索引是否存在
+     * @param request
+     * @throws IOException
+     */
+    @GetMapping("/es/existsIndex")
+    public void exists_index(HttpServletRequest request) throws IOException {
+        String index = request.getParameter("index");
+        GetIndexRequest getRequest = new GetIndexRequest();
+        getRequest.indices(index);
+        boolean exists = client.indices().exists(getRequest, RequestOptions.DEFAULT);
+        System.out.println(exists);
+    }
+
+    /**
+     * 删除索引
+     */
+
+    @GetMapping("/es/deleteIndex")
+    public void delete_index(HttpServletRequest request) throws IOException {
+        String index = request.getParameter("index");
+        DeleteIndexRequest deleteRequest = new DeleteIndexRequest("esdemo");
+        AcknowledgedResponse deleteIndexResponse = client.indices().delete(deleteRequest, RequestOptions.DEFAULT);
+        System.out.println(deleteIndexResponse.isAcknowledged());
+    }
+
+    /**
+     * 保存或者更新索引数据
+     * @param request
+     * @return
+     */
+
+    @GetMapping("/es/commonaddOrUpdate")
+    public String common_add(HttpServletRequest request)  {
+        String index = request.getParameter("index");
+        String source = request.getParameter("source");
+        IndexRequest indexRequest = new IndexRequest(index);
+        indexRequest.source(source, XContentType.JSON);
+        IndexResponse indexResponse = null;
+        try {
+            indexResponse = client.index(indexRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (indexResponse.getResult() == DocWriteResponse.Result.CREATED) {
+            System.out.println("创建成功");
+        } else if (indexResponse.getResult() == DocWriteResponse.Result.UPDATED) {
+            System.out.println("修改成功");
+        }
+        return null;
+    }
+
+
+    /**
+     * 根据id更新数据
+     * @param request
+     */
+
+    @GetMapping("/es/commonUpdateData")
+    public void common_update_data(HttpServletRequest request){
+        String index = request.getParameter("index");
+        String id = request.getParameter("id");
+        String source = request.getParameter("source");
+
+        UpdateRequest updateRequest = new UpdateRequest(index, id);
+
+        updateRequest.doc(source);
+        UpdateResponse updateResponse = null;
+        try {
+            updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (updateResponse.getResult() == DocWriteResponse.Result.CREATED) {
+            System.out.println("创建成功");
+        } else if (updateResponse.getResult() == DocWriteResponse.Result.UPDATED) {
+            System.out.println("修改成功");
+        }
+    }
+
+    /**
+     * 删除数据
+     * @param request
+     */
+
+    @GetMapping("/es/commonDeleteData")
+    public void common_delete_data(HttpServletRequest request){
+
+        String index = request.getParameter("index");
+        String id = request.getParameter("id");
+
+        DeleteRequest deleteRequest = new DeleteRequest(index , id);
+
+        DeleteResponse deleteResponse = null;
+        try {
+            deleteResponse = client.delete(deleteRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (deleteResponse.getResult() == DocWriteResponse.Result.DELETED) {
+            System.out.println("删除成功");
+        }
+    }
+
+
+
+
+//    @GetMapping("/es/commonQueryBySql")
+//    public void common_query_sql(HttpServletRequest request) throws Exception {
+//
+//        String sql = request.getParameter("sql");
+//        String result = elasticsearchTemplateNew.queryBySQL("SELECT * FROM index_demo where proposal_no = '2'", SqlFormat.TXT);
+//        System.out.println(result);
+//    }
+
 }

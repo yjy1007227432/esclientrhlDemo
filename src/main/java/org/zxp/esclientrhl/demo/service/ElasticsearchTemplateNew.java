@@ -1,5 +1,6 @@
 package org.zxp.esclientrhl.demo.service;
 
+
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.zxp.esclientrhl.demo.enums.DataTypeNew;
@@ -17,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class ElasticsearchTemplateNew<T, M> extends ElasticsearchTemplateImpl<T, M> {
 
 

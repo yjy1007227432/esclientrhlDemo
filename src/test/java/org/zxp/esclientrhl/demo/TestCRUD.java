@@ -13,14 +13,15 @@ import org.elasticsearch.search.sort.ScriptSortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.zxp.esclientrhl.demo.domain.IndexDemo;
+import org.zxp.esclientrhl.demo.service.ElasticsearchTemplateNew;
 import org.zxp.esclientrhl.enums.SqlFormat;
 import org.zxp.esclientrhl.repository.*;
 import org.zxp.esclientrhl.repository.response.ScrollResponse;
 import org.zxp.esclientrhl.util.Constant;
 import org.zxp.esclientrhl.util.JsonUtils;
 
+import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -31,8 +32,9 @@ import java.util.*;
  * @create: 2019-02-25 16:47
  **/
 public class TestCRUD extends EsclientrhlDemoApplicationTests {
-    @Autowired
-    ElasticsearchTemplate<IndexDemo, String> elasticsearchTemplate;
+
+    @Resource(name = "elasticsearchTemplateNew")
+    ElasticsearchTemplateNew<IndexDemo, String> elasticsearchTemplateNew;
 
     /**
      * 测试保存一条数据
@@ -48,9 +50,9 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         main1.setRisk_code("0501");
         main1.setSum_premium(100);
         main1.setOperate_date(new Date());
-        elasticsearchTemplate.save(main1);
+        elasticsearchTemplateNew.save(main1);
         QueryBuilder qb = QueryBuilders.termQuery("proposal_no", "main1123123123");
-        elasticsearchTemplate.search(qb, IndexDemo.class).forEach(s -> System.out.println(s));
+        elasticsearchTemplateNew.search(qb, IndexDemo.class).forEach(s -> System.out.println(s));
     }
 
     /**
@@ -72,7 +74,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         IndexDemo main4 = new IndexDemo();
         main4.setProposal_no("4444");
         main4.setBusiness_nature_name("J01-002-07");
-        elasticsearchTemplate.save(Arrays.asList(main1, main2, main3, main4));
+        elasticsearchTemplateNew.save(Arrays.asList(main1, main2, main3, main4));
     }
 
     /**
@@ -88,9 +90,9 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         main1.setProposal_no("zxptestdate");
         main1.setOperate_date(now);
         main1.setOperate_date_format(sdf.format(now));
-        elasticsearchTemplate.save(main1);
+        elasticsearchTemplateNew.save(main1);
         Thread.sleep(1000);
-        IndexDemo mresult = elasticsearchTemplate.getById("zxptestdate", IndexDemo.class);
+        IndexDemo mresult = elasticsearchTemplateNew.getById("zxptestdate", IndexDemo.class);
         System.out.println("返回的Operate_date" + mresult.getOperate_date());
         System.out.println("返回的Operate_date格式化后" + sdf.format(mresult.getOperate_date()));
         System.out.println("返回的Operate_date_format" + mresult.getOperate_date_format());
@@ -106,7 +108,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         IndexDemo main1 = new IndexDemo();
         main1.setProposal_no("main2");
         main1.setInsured_code("123");
-        elasticsearchTemplate.update(main1);
+        elasticsearchTemplateNew.update(main1);
     }
 
     /**
@@ -118,7 +120,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
     public void testUpdateBatch() throws Exception {
         IndexDemo main1 = new IndexDemo();
         main1.setSum_amount(10000);
-        elasticsearchTemplate.batchUpdate(QueryBuilders.matchQuery("appli_name", "123"), main1, IndexDemo.class, 30, true);
+        elasticsearchTemplateNew.batchUpdate(QueryBuilders.matchQuery("appli_name", "123"), main1, IndexDemo.class, 30, true);
         Thread.sleep(9000L);
     }
 
@@ -132,7 +134,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         IndexDemo main1 = new IndexDemo();
         main1.setProposal_no("main1");
         main1.setInsured_code("123");
-        elasticsearchTemplate.updateCover(main1);
+        elasticsearchTemplateNew.updateCover(main1);
     }
 
     /**
@@ -145,8 +147,8 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         IndexDemo main1 = new IndexDemo();
         main1.setProposal_no("main1");
         main1.setInsured_code("123");
-        elasticsearchTemplate.delete(main1);
-        elasticsearchTemplate.deleteById("main1", IndexDemo.class);
+        elasticsearchTemplateNew.delete(main1);
+        elasticsearchTemplateNew.deleteById("main1", IndexDemo.class);
     }
 
     /**
@@ -159,7 +161,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         IndexDemo main1 = new IndexDemo();
         main1.setProposal_no("main1");
         main1.setInsured_code("123");
-        boolean exists = elasticsearchTemplate.exists("main1", IndexDemo.class);
+        boolean exists = elasticsearchTemplateNew.exists("main1", IndexDemo.class);
         System.out.println(exists);
     }
 
@@ -176,7 +178,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         searchSourceBuilder.from(0);
         searchSourceBuilder.size(10);
         searchRequest.source(searchSourceBuilder);
-        SearchResponse searchResponse = elasticsearchTemplate.search(searchRequest);
+        SearchResponse searchResponse = elasticsearchTemplateNew.search(searchRequest);
 
         SearchHits hits = searchResponse.getHits();
         SearchHit[] searchHits = hits.getHits();
@@ -193,7 +195,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
      */
     @Test
     public void testSearchMore() throws Exception {
-        List<IndexDemo> main2List = elasticsearchTemplate.searchMore(new MatchAllQueryBuilder(), 7, IndexDemo.class);
+        List<IndexDemo> main2List = elasticsearchTemplateNew.searchMore(new MatchAllQueryBuilder(), 7, IndexDemo.class);
         System.out.println(main2List.size());
         main2List.forEach(main2 -> System.out.println(main2));
     }
@@ -224,7 +226,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         main1.setAppli_name("一二三四五唉收到弄得你阿斯达岁的阿斯蒂芬斯蒂芬我单位代缴我佛非我方是的佛挡杀佛第三方东方闪电凡事都红is都if觉得搜房水电费啥都if结算单佛第四届发送到");
         main1.setRisk_code("0501");
         main1.setSum_premium(100);
-        elasticsearchTemplate.save(main1);
+        elasticsearchTemplateNew.save(main1);
     }
 
     /**
@@ -248,7 +250,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         //new HighLight().setPreTag("<em>");
         //new HighLight().setPostTag("</em>");
         PageList<IndexDemo> pageList = new PageList<>();
-        pageList = elasticsearchTemplate.search(QueryBuilders.matchQuery("appli_name", "我"), psh, IndexDemo.class);
+        pageList = elasticsearchTemplateNew.search(QueryBuilders.matchQuery("appli_name", "我"), psh, IndexDemo.class);
         pageList.getList().forEach(main2 -> System.out.println(main2));
 
 
@@ -271,7 +273,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
      */
     @Test
     public void testCount() throws Exception {
-        long count = elasticsearchTemplate.count(new MatchAllQueryBuilder(), IndexDemo.class);
+        long count = elasticsearchTemplateNew.count(new MatchAllQueryBuilder(), IndexDemo.class);
         System.out.println(count);
     }
 
@@ -283,13 +285,13 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
     @Test
     public void testScroll() throws Exception {
         //指定scroll镜像保留5小时
-        ScrollResponse<IndexDemo> scroll = elasticsearchTemplate.createScroll(new MatchAllQueryBuilder(), IndexDemo.class, 5L, 10000);
+        ScrollResponse<IndexDemo> scroll = elasticsearchTemplateNew.createScroll(new MatchAllQueryBuilder(), IndexDemo.class, 5L, 10000);
         scroll.getList().forEach(System.out::println);
-        ScrollResponse<IndexDemo> scrollResponse = elasticsearchTemplate.queryScroll(IndexDemo.class, 5L, scroll.getScrollId());
+        ScrollResponse<IndexDemo> scrollResponse = elasticsearchTemplateNew.queryScroll(IndexDemo.class, 5L, scroll.getScrollId());
         scrollResponse.getList().forEach(System.out::println);
 
         //清除scroll
-        ClearScrollResponse clearScrollResponse = elasticsearchTemplate.clearScroll(scroll.getScrollId());
+        ClearScrollResponse clearScrollResponse = elasticsearchTemplateNew.clearScroll(scroll.getScrollId());
         System.out.println(clearScrollResponse.isSucceeded());
     }
 
@@ -300,7 +302,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
      */
     @Test
     public void testCompletionSuggest() throws Exception {
-        List<String> list = elasticsearchTemplate.completionSuggest("appli_name", "1", IndexDemo.class);
+        List<String> list = elasticsearchTemplateNew.completionSuggest("appli_name", "1", IndexDemo.class);
         list.forEach(main2 -> System.out.println(main2));
     }
 
@@ -311,7 +313,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
      */
     @Test
     public void testSearchByID() throws Exception {
-        IndexDemo main2 = elasticsearchTemplate.getById("main2", IndexDemo.class);
+        IndexDemo main2 = elasticsearchTemplateNew.getById("main2", IndexDemo.class);
         System.out.println(main2);
     }
 
@@ -323,7 +325,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
     @Test
     public void testMGET() throws Exception {
         String[] list = {"main2", "main3"};
-        List<IndexDemo> listResult = elasticsearchTemplate.mgetById(list, IndexDemo.class);
+        List<IndexDemo> listResult = elasticsearchTemplateNew.mgetById(list, IndexDemo.class);
         listResult.forEach(main -> System.out.println(main));
     }
 
@@ -347,7 +349,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         main4.setProposal_no("ddd");
         main4.setBusiness_nature_name("aaaaaa2");
         main4.setCom_code("aa");
-        elasticsearchTemplate.bulkUpdateBatch(Arrays.asList(main1, main2, main3, main4));
+        elasticsearchTemplateNew.bulkUpdateBatch(Arrays.asList(main1, main2, main3, main4));
     }
 
     /**
@@ -358,7 +360,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
     @Test
     public void testURI() throws Exception {
         //"q=sum_premium:100"查询sum_premium为100的结果
-        List<IndexDemo> list = elasticsearchTemplate.searchUri("q=proposal_no:2", IndexDemo.class);
+        List<IndexDemo> list = elasticsearchTemplateNew.searchUri("q=proposal_no:2", IndexDemo.class);
         list.forEach(s -> System.out.println(s));
     }
 
@@ -369,7 +371,8 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
      */
     @Test
     public void testSQL() throws Exception {
-        String result = elasticsearchTemplate.queryBySQL("SELECT * FROM index_demo where proposal_no = '2'", SqlFormat.TXT);
+        String result = elasticsearchTemplateNew.queryBySQL("SELECT * FROM index_demo where proposal_no = '2'", SqlFormat.JSON);
+        List<IndexDemo> result2 = elasticsearchTemplateNew.queryBySQL("SELECT * FROM index_demo ", IndexDemo.class);
 //       String result = elasticsearchTemplate.queryBySQL("SELECT count(*) FROM index ", SqlFormat.TXT);
 //       String result = elasticsearchTemplate.queryBySQL("SELECT risk_code,sum(sum_premium) FROM index group by risk_code", SqlFormat.TXT);
         System.out.println(result);
@@ -398,7 +401,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
                 "    }\n" +
                 "  }\n" +
                 "}";
-        elasticsearchTemplate.saveTemplate("tempdemo1", templatesource);
+        elasticsearchTemplateNew.saveTemplate("tempdemo1", templatesource);
     }
 
     /**
@@ -410,7 +413,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
     public void testSearchTemplate() throws Exception {
         Map param = new HashMap();
         param.put("name", "123");
-        elasticsearchTemplate.searchTemplate(param, "tempdemo1", IndexDemo.class).forEach(s -> System.out.println(s));
+        elasticsearchTemplateNew.searchTemplate(param, "tempdemo1", IndexDemo.class).forEach(s -> System.out.println(s));
     }
 
     /**
@@ -429,7 +432,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
                 "        }\n" +
                 "      }\n" +
                 "}";
-        elasticsearchTemplate.searchTemplateBySource(param, templatesource, IndexDemo.class).forEach(s -> System.out.println(s));
+        elasticsearchTemplateNew.searchTemplateBySource(param, templatesource, IndexDemo.class).forEach(s -> System.out.println(s));
     }
 
     /**
@@ -442,18 +445,18 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         IndexDemo main2 = new IndexDemo();
         main2.setProposal_no("qq360");
         main2.setAppli_name("zzxxpp");
-        elasticsearchTemplate.save(main2, "R01");
+        elasticsearchTemplateNew.save(main2, "R01");
 
         Attach attach = new Attach();
         attach.setRouting("R01");
-        elasticsearchTemplate.search(QueryBuilders.termQuery("proposal_no", "qq360"), attach, IndexDemo.class)
+        elasticsearchTemplateNew.search(QueryBuilders.termQuery("proposal_no", "qq360"), attach, IndexDemo.class)
                 .getList().forEach(s -> System.out.println(s));
 
         IndexDemo main3 = new IndexDemo();
         main3.setProposal_no("qq360");
         main3.setAppli_name("zzxxpp");
-        elasticsearchTemplate.save(main3, "R01");
-        elasticsearchTemplate.delete(main3,"R01");
+        elasticsearchTemplateNew.save(main3, "R01");
+        elasticsearchTemplateNew.delete(main3,"R01");
 
     }
 
@@ -467,7 +470,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
     public void testAttachQuery2() throws Exception {
         PageSortHighLight pageSortHighLight = new PageSortHighLight(1, 5);
 
-        elasticsearchTemplate.search(new MatchAllQueryBuilder(), pageSortHighLight, IndexDemo.class)
+        elasticsearchTemplateNew.search(new MatchAllQueryBuilder(), pageSortHighLight, IndexDemo.class)
                 .getList().forEach(s -> System.out.println(s));
     }
 
@@ -485,7 +488,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         String[] ins = {"proposal_no"};
         attach.setIncludes(ins);
 
-        elasticsearchTemplate.search(new MatchAllQueryBuilder(), attach, IndexDemo.class)
+        elasticsearchTemplateNew.search(new MatchAllQueryBuilder(), attach, IndexDemo.class)
                 .getList().forEach(s -> System.out.println(s));
     }
 
@@ -503,12 +506,12 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         Sort.Order order = new Sort.Order(SortOrder.ASC,sorter);
         pageSortHighLight.setSort(new Sort(order));
         attach.setPageSortHighLight(pageSortHighLight);
-        PageList page = elasticsearchTemplate.search(new MatchAllQueryBuilder(),attach,IndexDemo.class);
+        PageList page = elasticsearchTemplateNew.search(new MatchAllQueryBuilder(),attach,IndexDemo.class);
         page.getList().forEach(s -> System.out.println(s));
         Object[] sortValues = page.getSortValues();
         while (true) {
             attach.setSortValues(sortValues);
-            page = elasticsearchTemplate.search(new MatchAllQueryBuilder(),attach,IndexDemo.class);
+            page = elasticsearchTemplateNew.search(new MatchAllQueryBuilder(),attach,IndexDemo.class);
             if (page.getList() != null && page.getList().size() != 0) {
                 page.getList().forEach(s -> System.out.println(s));
                 sortValues = page.getSortValues();
@@ -528,9 +531,9 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         IndexDemo main1 = new IndexDemo();
         main1.setProposal_no("main1");
         main1.setInsured_code("123");
-        elasticsearchTemplate.save(main1);
+        elasticsearchTemplateNew.save(main1);
         QueryBuilder queryBuilder = QueryBuilders.termQuery("proposal_no", "main1");
-        BulkByScrollResponse bulkResponse = elasticsearchTemplate.deleteByCondition(queryBuilder,IndexDemo.class);
+        BulkByScrollResponse bulkResponse = elasticsearchTemplateNew.deleteByCondition(queryBuilder,IndexDemo.class);
         System.out.println(queryBuilder);
     }
 
