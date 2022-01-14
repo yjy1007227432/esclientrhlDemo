@@ -12,8 +12,10 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.ScriptSortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.zxp.esclientrhl.demo.domain.IndexDemo;
+import org.zxp.esclientrhl.demo.response.SqlResponse;
 import org.zxp.esclientrhl.demo.service.ElasticsearchTemplateNew;
 import org.zxp.esclientrhl.enums.SqlFormat;
 import org.zxp.esclientrhl.repository.*;
@@ -371,7 +373,20 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
      */
     @Test
     public void testSQL() throws Exception {
-        String result = elasticsearchTemplateNew.queryBySQL("SELECT * FROM index_demo where proposal_no = '2'", SqlFormat.JSON);
+        String result = elasticsearchTemplateNew.queryBySQL("SELECT * FROM index_demo ", SqlFormat.JSON);
+        SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
+        List<Map<String,String>> maps = new ArrayList<>();
+        sqlResponse.getRows().forEach(row->{
+            HashMap<String,String> map = new HashMap<>();
+            for(int i=0;i<sqlResponse.getColumns().size();i++){
+                map.put(sqlResponse.getColumns().get(i).getName(),Optional.ofNullable(row.get(i)).orElse(""));
+            }
+            maps.add(map);
+        });
+        String json = JsonUtils.obj2String(maps);
+
+
+
         List<IndexDemo> result2 = elasticsearchTemplateNew.queryBySQL("SELECT * FROM index_demo ", IndexDemo.class);
 //       String result = elasticsearchTemplate.queryBySQL("SELECT count(*) FROM index ", SqlFormat.TXT);
 //       String result = elasticsearchTemplate.queryBySQL("SELECT risk_code,sum(sum_premium) FROM index group by risk_code", SqlFormat.TXT);

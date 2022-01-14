@@ -10,8 +10,10 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.zxp.esclientrhl.demo.domain.IndexDemo;
 import org.zxp.esclientrhl.demo.service.ElasticsearchTemplateNew;
+import org.zxp.esclientrhl.enums.SqlFormat;
 
 import java.util.List;
 
@@ -24,8 +26,8 @@ import java.util.List;
 public class TestLowLevelClient extends EsclientrhlDemoApplicationTests {
 
 
-    @Autowired
-    ElasticsearchTemplateNew elasticsearchTemplateNew;
+    @Qualifier(value = "ElasticsearchTemplateNew")
+    private ElasticsearchTemplateNew elasticsearchTemplateNew;
 
     @Test
     public void testLow() throws Exception {
@@ -46,6 +48,9 @@ public class TestLowLevelClient extends EsclientrhlDemoApplicationTests {
     @Test
     public void test() throws Exception {
         List<IndexDemo> result = elasticsearchTemplateNew.queryBySQL("select * from index_demo",IndexDemo.class);
+        String result2 = elasticsearchTemplateNew.queryBySQL("select * from index_demo", SqlFormat.JSON);
+
+
         System.out.println();
 
     }

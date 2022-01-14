@@ -18,14 +18,20 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.zxp.esclientrhl.demo.domain.IndexDemo;
+import org.zxp.esclientrhl.demo.domain.MyMovies;
+import org.zxp.esclientrhl.demo.response.SqlResponse;
 import org.zxp.esclientrhl.demo.service.ElasticsearchTemplateNew;
 import org.zxp.esclientrhl.enums.SqlFormat;
+import org.zxp.esclientrhl.repository.ElasticsearchTemplate;
+import org.zxp.esclientrhl.util.JsonUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 public class commonCURDController {
@@ -34,6 +40,8 @@ public class commonCURDController {
     @Autowired
     private RestHighLevelClient client;
 
+    @Qualifier(value = "ElasticsearchTemplateNew")
+    private ElasticsearchTemplateNew elasticsearchTemplateNew;
 
 
     /**
@@ -63,6 +71,15 @@ public class commonCURDController {
             e.printStackTrace();
         }
     }
+
+
+    @GetMapping("/es/searchTemplate")
+    public void searchTemplate() throws Exception {
+        Map param = new HashMap();
+        param.put("name", "123");
+        elasticsearchTemplateNew.searchTemplate(param, "tempdemo1", IndexDemo.class).forEach(s -> System.out.println(s));
+    }
+
 
     /**
      * 查看索引是否存在
@@ -169,14 +186,67 @@ public class commonCURDController {
     }
 
 
+    /**
+     * 通过sql查询es数据库
+     * @param request
+     * @throws Exception
+     */
+
+    @GetMapping("/es/commonQueryBySql")
+    public void common_query_sql(HttpServletRequest request) throws Exception {
+        String sql = request.getParameter("sql");
+        String result = elasticsearchTemplateNew.queryBySQL(sql, SqlFormat.JSON);
+        SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
+        List<Map<String,String>> maps = new ArrayList<>();
+        sqlResponse.getRows().forEach(row->{
+            HashMap<String,String> map = new HashMap<>();
+            for(int i=0;i<sqlResponse.getColumns().size();i++){
+                map.put(sqlResponse.getColumns().get(i).getName(),Optional.ofNullable(row.get(i)).orElse(""));
+            }
+            maps.add(map);
+        });
+        String json = JsonUtils.obj2String(maps);
+    }
 
 
-//    @GetMapping("/es/commonQueryBySql")
-//    public void common_query_sql(HttpServletRequest request) throws Exception {
-//
-//        String sql = request.getParameter("sql");
-//        String result = elasticsearchTemplateNew.queryBySQL("SELECT * FROM index_demo where proposal_no = '2'", SqlFormat.TXT);
-//        System.out.println(result);
-//    }
+
+    /**
+     * 通过sql查询es数据库
+     * @param request
+     * @throws Exception
+     */
+
+    @GetMapping("/es/commonQueryBySqlPage")
+    public void common_query_sqlPage(HttpServletRequest request) throws Exception {
+        String sql = request.getParameter("sql");
+        String result = elasticsearchTemplateNew.queryBySQL(sql, SqlFormat.JSON);
+        SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
+        List<Map<String,String>> maps = new ArrayList<>();
+        sqlResponse.getRows().forEach(row->{
+            HashMap<String,String> map = new HashMap<>();
+            for(int i=0;i<sqlResponse.getColumns().size();i++){
+                map.put(sqlResponse.getColumns().get(i).getName(),Optional.ofNullable(row.get(i)).orElse(""));
+            }
+            maps.add(map);
+        });
+        String json = JsonUtils.obj2String(maps);
+    }
+
+
+    @GetMapping("/es/commonQueryBySqlPage")
+    public void common_query_sqlPage(HttpServletRequest request) throws Exception {
+        String sql = request.getParameter("sql");
+        String result = elasticsearchTemplateNew.getById(sql, SqlFormat.JSON);
+        SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
+        List<Map<String,String>> maps = new ArrayList<>();
+        sqlResponse.getRows().forEach(row->{
+            HashMap<String,String> map = new HashMap<>();
+            for(int i=0;i<sqlResponse.getColumns().size();i++){
+                map.put(sqlResponse.getColumns().get(i).getName(),Optional.ofNullable(row.get(i)).orElse(""));
+            }
+            maps.add(map);
+        });
+        String json = JsonUtils.obj2String(maps);
+    }
 
 }

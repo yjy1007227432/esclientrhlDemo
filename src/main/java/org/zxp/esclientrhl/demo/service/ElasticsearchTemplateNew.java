@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+@Component
 public class ElasticsearchTemplateNew<T, M> extends ElasticsearchTemplateImpl<T, M> {
 
 
