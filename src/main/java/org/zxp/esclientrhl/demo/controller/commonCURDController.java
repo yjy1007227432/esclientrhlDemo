@@ -211,7 +211,7 @@ public class commonCURDController {
 
 
     /**
-     * 通过sql查询es数据库
+     * 通过sql分页查询es数据库
      * @param request
      * @throws Exception
      */
@@ -219,24 +219,9 @@ public class commonCURDController {
     @GetMapping("/es/commonQueryBySqlPage")
     public void common_query_sqlPage(HttpServletRequest request) throws Exception {
         String sql = request.getParameter("sql");
+        String count = request.getParameter("count");
         String result = elasticsearchTemplateNew.queryBySQL(sql, SqlFormat.JSON);
-        SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
-        List<Map<String,String>> maps = new ArrayList<>();
-        sqlResponse.getRows().forEach(row->{
-            HashMap<String,String> map = new HashMap<>();
-            for(int i=0;i<sqlResponse.getColumns().size();i++){
-                map.put(sqlResponse.getColumns().get(i).getName(),Optional.ofNullable(row.get(i)).orElse(""));
-            }
-            maps.add(map);
-        });
-        String json = JsonUtils.obj2String(maps);
-    }
-
-
-    @GetMapping("/es/commonQueryBySqlPage")
-    public void common_query_sqlPage(HttpServletRequest request) throws Exception {
-        String sql = request.getParameter("sql");
-        String result = elasticsearchTemplateNew.getById(sql, SqlFormat.JSON);
+        String resultCount = elasticsearchTemplateNew.queryBySQL(count,SqlFormat.JSON);
         SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
         List<Map<String,String>> maps = new ArrayList<>();
         sqlResponse.getRows().forEach(row->{

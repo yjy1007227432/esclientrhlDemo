@@ -22,6 +22,8 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -41,6 +43,7 @@ import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestionBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.zxp.esclientrhl.demo.domain.ESQueryHelper;
 import org.zxp.esclientrhl.demo.domain.IndexDemo;
 import org.zxp.esclientrhl.util.JsonUtils;
 
@@ -148,6 +151,17 @@ public class TestNewClient extends EsclientrhlDemoApplicationTests {
 //        client.indices().createAsync(request, listener);
 
 
+    }
+
+
+    @Test
+    public void ESQueryHelperTest() throws IOException {
+        SearchResponse searchResponse = ESQueryHelper.build("xihueventinfo_ik")
+                .and(ESQueryHelper.in("id", "0000798ffa0945e1a0b746ca1f632985","000145002cc711ec4bf552f7b566d0de")) // 名字为张三
+                .or(ESQueryHelper.equals("id", "0000798ffa0945e1a0b746ca1f632985"))
+                .size(10) // 只查询10条
+                .execute(client);// 异常自己处理
+        System.out.println();
     }
 
 
