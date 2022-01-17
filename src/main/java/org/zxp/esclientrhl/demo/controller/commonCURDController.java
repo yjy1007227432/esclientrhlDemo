@@ -1,6 +1,9 @@
 package org.zxp.esclientrhl.demo.controller;
 
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
@@ -19,6 +22,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.zxp.esclientrhl.demo.domain.IndexDemo;
@@ -34,6 +38,9 @@ import java.io.IOException;
 import java.util.*;
 
 @RestController
+@Api(tags = "es常用操作")
+@Slf4j
+@Validated
 public class commonCURDController {
 
 
@@ -50,6 +57,7 @@ public class commonCURDController {
      */
 
     @GetMapping("/es/createIndex")
+    @ApiOperation("创建索引")
     public void createIndex(HttpServletRequest request)  {
         String index = request.getParameter("index");
         String shards = request.getParameter("shards");
