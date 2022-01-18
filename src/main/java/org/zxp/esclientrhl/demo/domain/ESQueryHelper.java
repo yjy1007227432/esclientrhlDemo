@@ -77,11 +77,19 @@ public class ESQueryHelper {
     }
 
 
-    public ESQueryHelper orNew(List<String> list) {
+    public ESQueryHelper orNew(List<SearchParam.Or> ors) {
         BoolQueryBuilder shouldQ= QueryBuilders.boolQuery();
-        list.forEach(x->{
-            switch (x){
-                case "equal":QueryBuilders.termQuery("id.keyword",x);
+        ors.forEach(or -> {
+            switch (or.getType()){
+                case "equals":
+                case "in":
+                    shouldQ.should(QueryBuilders.termQuery(or.getColumn(),or.getVal().toString()));break;
+                case "like":shouldQ.should(QueryBuilders.wildcardQuery(or.getColumn(),"*".concat(or.getVal().toString()).concat("*")));break;
+                case "leftLike":shouldQ.should(QueryBuilders.termQuery(or.getColumn(),"*".concat(or.getVal().toString())));break;
+                case "rightLike":shouldQ.should(QueryBuilders.termQuery(or.getColumn(),or.getVal().toString().concat("*")));break;
+                case "gt":shouldQ.should(QueryBuilders.rangeQuery(or.getColumn()).gt(or.getVal()));break;
+                case "lt":shouldQ.should(QueryBuilders.rangeQuery(or.getColumn()).lt(or.getVal()));break;
+                case "between":shouldQ.should(QueryBuilders.rangeQuery(or.getColumn()).gt(or.getVal().toString().split(",")[0]).lte(or.getVal().toString().split(",")[1]));;break;
             }
         });
         bool.must(shouldQ);

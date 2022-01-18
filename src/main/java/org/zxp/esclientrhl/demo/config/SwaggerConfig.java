@@ -44,7 +44,7 @@ public class SwaggerConfig {
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("接口文档")
-                .contact(new Contact("JAVA日知录","http://javadaily.cn","yao_junyi@qq.com"))
+                .contact(new Contact("ES封装操作","http://javadaily.cn","yao_junyi@qq.com"))
                 .description("Swagger接口文档")
                 .version(VERSION)
                 .build();

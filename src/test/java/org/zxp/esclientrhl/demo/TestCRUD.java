@@ -373,7 +373,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
      */
     @Test
     public void testSQL() throws Exception {
-        String result = elasticsearchTemplateNew.queryBySQL("SELECT * FROM index_demo ", SqlFormat.JSON);
+        String result = elasticsearchTemplateNew.queryBySQL("SELECT * FROM xihueventinfo_ik ", SqlFormat.JSON);
         SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
         List<Map<String,String>> maps = new ArrayList<>();
         sqlResponse.getRows().forEach(row->{

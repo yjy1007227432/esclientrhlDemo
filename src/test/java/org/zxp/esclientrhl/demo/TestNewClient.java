@@ -1,5 +1,6 @@
 package org.zxp.esclientrhl.demo;
 
+import com.alibaba.fastjson.JSON;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
@@ -22,8 +23,6 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -45,12 +44,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.zxp.esclientrhl.demo.domain.ESQueryHelper;
 import org.zxp.esclientrhl.demo.domain.IndexDemo;
+import org.zxp.esclientrhl.demo.domain.SearchParam;
 import org.zxp.esclientrhl.util.JsonUtils;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @program: 直接使用RestHighLevelClient操作
@@ -156,11 +155,32 @@ public class TestNewClient extends EsclientrhlDemoApplicationTests {
 
     @Test
     public void ESQueryHelperTest() throws IOException {
+        List<SearchParam> searchParams = new ArrayList<>();
+        SearchParam param = new SearchParam();
+        param.setOperator("and");
+        param.setColumn("id");
+        param.setType("equals");
+        param.setVal("000145002cc711ec4bf552f7b566d0de");
+        searchParams.add(param);
+
+        String json = JSON.toJSONString(searchParams);
+
+
+
+        List<String> list = new ArrayList<>();
+        list.add("equal");
         SearchResponse searchResponse = ESQueryHelper.build("xihueventinfo_ik")
                 .and(ESQueryHelper.in("id", "0000798ffa0945e1a0b746ca1f632985","000145002cc711ec4bf552f7b566d0de")) // 名字为张三
-                .or(ESQueryHelper.equals("id", "0000798ffa0945e1a0b746ca1f632985"))
+//                .orNew(list)
                 .size(10) // 只查询10条
                 .execute(client);// 异常自己处理
+
+        SearchHit[] searchHits = searchResponse.getHits().getHits();
+        List<String> list1 = Arrays.stream(searchHits).map(SearchHit::getSourceAsString).collect(Collectors.toList());
+        Long value = searchResponse.getHits().getTotalHits().value;
+
+
+
         System.out.println();
     }
 
