@@ -3,6 +3,7 @@ package org.zxp.esclientrhl.demo.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.google.common.base.Joiner;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -25,10 +26,16 @@ import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.core.CountRequest;
+import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.validation.annotation.Validated;
@@ -55,8 +62,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Validated
 public class commonCURDController {
-    private static Log log = LogFactory.getLog(commonCURDController.class);
-
     @Autowired
     private RestHighLevelClient client;
 
@@ -218,25 +223,42 @@ public class commonCURDController {
      */
 
     @GetMapping("/es/commonUpdateData")
-    public void common_update_data(HttpServletRequest request){
+    @ApiOperation(value = "根据id更新数据", httpMethod = "GET")
+    @ResponseBody
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "index", value = "索引名", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "source", value = "数据json", required = true, dataType = "String", paramType = "query")
+    })
+    public BaseResult common_update_data(HttpServletRequest request){
+        BaseResult baseResult = new BaseResult();
         String index = request.getParameter("index");
         String id = request.getParameter("id");
         String source = request.getParameter("source");
 
-        UpdateRequest updateRequest = new UpdateRequest(index, id);
-
-        updateRequest.doc(source);
-        UpdateResponse updateResponse = null;
         try {
-            updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
-        } catch (IOException e) {
-            e.printStackTrace();
+            UpdateRequest updateRequest = new UpdateRequest(index, id);
+
+            updateRequest.doc(source);
+            UpdateResponse updateResponse = null;
+            try {
+                updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (updateResponse.getResult() == DocWriteResponse.Result.CREATED) {
+                baseResult.setObj("创建成功");
+            } else if (updateResponse.getResult() == DocWriteResponse.Result.UPDATED) {
+                System.out.println("修改成功");
+                baseResult.setObj("修改成功");
+            }
+            baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
+            baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
+        } catch (Exception e) {
+            baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+            baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
         }
-        if (updateResponse.getResult() == DocWriteResponse.Result.CREATED) {
-            System.out.println("创建成功");
-        } else if (updateResponse.getResult() == DocWriteResponse.Result.UPDATED) {
-            System.out.println("修改成功");
-        }
+        return baseResult;
     }
 
     /**
@@ -281,7 +303,7 @@ public class commonCURDController {
      * @param request
      * @throws Exception
      */
-    @ApiOperation(value = "通过sql语句查询es数据库", httpMethod = "GET")
+    @ApiOperation(value = "通过sql语句查询es数据库数据", httpMethod = "GET")
     @ResponseBody
     @ApiImplicitParams({
             @ApiImplicitParam(name = "sql", value = "sql语句", required = true, dataType = "String", paramType = "query"),
@@ -313,48 +335,81 @@ public class commonCURDController {
     }
 
 
-
     /**
-     * 通过sql分页查询es数据库
+     * 通过sql查询es数据库数量
      * @param request
      * @throws Exception
      */
-
-
-    @GetMapping("/es/commonQueryBySqlPage")
-    public void common_query_sqlPage(HttpServletRequest request) throws Exception {
+    @ApiOperation(value = "通过sql语句查询es数据库数量(count)", httpMethod = "GET")
+    @ResponseBody
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "sql", value = "sql语句", required = true, dataType = "String", paramType = "query"),
+    })
+    @GetMapping("/es/commonQueryCountBySql")
+    public BaseResult common_query_count_sql(HttpServletRequest request) throws Exception {
         String sql = request.getParameter("sql");
-        String count = request.getParameter("count");
-        String result = elasticsearchTemplateNew.queryBySQL(sql, SqlFormat.JSON);
-        String resultCount = elasticsearchTemplateNew.queryBySQL(count,SqlFormat.JSON);
-        SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
-        List<Map<String,String>> maps = new ArrayList<>();
-        sqlResponse.getRows().forEach(row->{
-            HashMap<String,String> map = new HashMap<>();
-            for(int i=0;i<sqlResponse.getColumns().size();i++){
-                map.put(sqlResponse.getColumns().get(i).getName(),Optional.ofNullable(row.get(i)).orElse(""));
-            }
-            maps.add(map);
-        });
-        String json = JsonUtils.obj2String(maps);
+        BaseResult baseResult = new BaseResult();
+        try {
+            String result = elasticsearchTemplateNew.queryBySQL(sql, SqlFormat.JSON);
+            SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
+            String json = JsonUtils.obj2String(sqlResponse.getRows().get(0).get(0));
+            baseResult.setObj(json);
+            baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
+            baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
+        } catch (Exception e) {
+            baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+            baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
+        }
+        return baseResult;
     }
 
 
 
-    @ApiOperation(value = "通用查询", httpMethod = "GET")
+//    /**
+//     * 通过sql分页查询es数据库
+//     * @param request
+//     * @throws Exception
+//     */
+//
+//
+//    @GetMapping("/es/commonQueryBySqlPage")
+//    public void common_query_sqlPage(HttpServletRequest request) throws Exception {
+//        String sql = request.getParameter("sql");
+//        String count = request.getParameter("count");
+//        String result = elasticsearchTemplateNew.queryBySQL(sql, SqlFormat.JSON);
+//        String resultCount = elasticsearchTemplateNew.queryBySQL(count,SqlFormat.JSON);
+//        SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
+//        List<Map<String,String>> maps = new ArrayList<>();
+//        sqlResponse.getRows().forEach(row->{
+//            HashMap<String,String> map = new HashMap<>();
+//            for(int i=0;i<sqlResponse.getColumns().size();i++){
+//                map.put(sqlResponse.getColumns().get(i).getName(),Optional.ofNullable(row.get(i)).orElse(""));
+//            }
+//            maps.add(map);
+//        });
+//        String json = JsonUtils.obj2String(maps);
+//    }
+
+
+
+    @ApiOperation(value = "通用分页查询", httpMethod = "GET")
     @ResponseBody
     @ApiImplicitParams({
             @ApiImplicitParam(name = "index", value = "index索引名称", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "searchParam", value = "查询参数", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "searchParam", value = "查询参数([{\"column\":\"incSource.keyword\",\"operator\":\"and\",\"type\":\"equals\",\"val\":\"我要报\"},{\"column\":\"issentry\",\"operator\":\"and\",\"type\":\"equals\",\"val\":\"1\"},{\"operator\":\"or\", \"ors\": [{\"column\":\"incId\",\"type\":\"equals\",\"val\":\"020c1ee0167b11ec6b9a6df783dfa9cc\"}, {\"column\":\"incId\",\"type\":\"equals\",\"val\":\"032d99f02d7011ec8f0b9b0fd79730b2\"}]}])", required = true, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "curPage", value = "当前页(默认0）", required = false, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "pageSize", value = "每页大小(默认10）", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "sortFields", value = "排序字段", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "highLightField", value = "高亮字段", required = false, dataType = "String", paramType = "query")
     })
     @GetMapping("/es/commonQueryByPage")
-    public BaseResult common_query(HttpServletRequest request) throws IOException {
+    public BaseResult common_query_page(HttpServletRequest request){
         String index = request.getParameter("index");
         String searchParamJson = request.getParameter("searchParam");
         String curPage = Optional.ofNullable(request.getParameter("curPage")).orElse("0");
         String pageSize = Optional.ofNullable(request.getParameter("pageSize")).orElse("10");
+        String sortFields = request.getParameter("sortFields");
+        String highLightField = request.getParameter("highLightField");
         BaseResult baseResult = new BaseResult();
         try {
             List<SearchParam> searchParams = JSON.parseArray(searchParamJson, SearchParam.class);
@@ -378,18 +433,165 @@ public class commonCURDController {
                 }
             });
 
+            if(highLightField!=null){
+                esQueryHelper.highlighter(highLightField,null,null);
+            }
+
+            if(sortFields!=null){
+                List<SortField> sortFieldList = JSON.parseArray(sortFields, SortField.class);
+                sortFieldList.forEach(sortField -> {
+                    if("asc".equals(sortField.getSort())){
+                        esQueryHelper.asc(sortField.getField());
+                    }else {
+                        esQueryHelper.desc(sortField.getField());
+                    }
+                });
+            }
+
+
             esQueryHelper.from(Integer.valueOf(curPage));
             esQueryHelper.size(Integer.valueOf(pageSize));
 
             SearchResponse searchResponse = esQueryHelper.execute(client);// 异常自己处理
-            List<String> list = Arrays.stream(searchResponse.getHits().getHits()).map(SearchHit::getSourceAsString).collect(Collectors.toList());
+
+
+            List<Map<String,Object>> list = new ArrayList<>();
+
+
+            for(SearchHit hit:searchResponse.getHits()){
+                //获取高亮字段
+                Map<String, HighlightField> highlightFields = hit.getHighlightFields();
+                Map<String,Object> map = JSON.parseObject(hit.getSourceAsString());
+                for(Map.Entry<String,HighlightField> entry:highlightFields.entrySet()){
+                    String key = entry.getKey().replace(".keyword","");
+                    if(map.containsKey(key)){
+                        map.put(key, Joiner.on("").join(entry.getValue().fragments()));
+                    }
+                }
+                list.add(map);
+
+            }
+
+
             Long value = searchResponse.getHits().getTotalHits().value;
-            PageList<String> pageList = new PageList<>();
+            PageList<Map<String,Object>> pageList = new PageList<>();
             pageList.setList(list);
             pageList.setCurrentPage(Integer.parseInt(curPage));
             pageList.setPageSize(Integer.parseInt(pageSize));
             pageList.setTotalElements(value);
             baseResult.setObj(pageList);
+            baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
+            baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
+        } catch (NumberFormatException | IOException e) {
+            baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+            baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
+        }
+        return baseResult;
+    }
+
+
+
+    @ApiOperation(value = "通用查询", httpMethod = "GET")
+    @ResponseBody
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "index", value = "index索引名称", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "searchParam", value = "查询参数", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "curPage", value = "当前页(默认0）", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "pageSize", value = "每页大小(默认10）", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "sortFields", value = "排序字段", required = false, dataType = "String", paramType = "query")})
+    @GetMapping("/es/commonQuery")
+    public BaseResult common_query(HttpServletRequest request){
+        String index = request.getParameter("index");
+        String searchParamJson = request.getParameter("searchParam");
+        String sortFields = request.getParameter("sortFields");
+        BaseResult baseResult = new BaseResult();
+        try {
+            List<SearchParam> searchParams = JSON.parseArray(searchParamJson, SearchParam.class);
+            ESQueryHelper esQueryHelper = ESQueryHelper.build(index);
+
+            searchParams.forEach(searchParam -> {
+                if("and".equals(searchParam.getOperator())) {
+                    switch (searchParam.getType()) {
+                        case "equals":esQueryHelper.and(ESQueryHelper.equals(searchParam.getColumn(),searchParam.getVal()));break;
+                        case "in":esQueryHelper.and(ESQueryHelper.in(searchParam.getColumn(),searchParam.getVal()));break;
+                        case "like":esQueryHelper.and(ESQueryHelper.like(searchParam.getColumn(),searchParam.getVal().toString()));break;
+                        case "leftLike":esQueryHelper.and(ESQueryHelper.leftLike(searchParam.getColumn(),searchParam.getVal().toString()));break;
+                        case "rightLike":esQueryHelper.and(ESQueryHelper.rightLike(searchParam.getColumn(),searchParam.getVal().toString()));break;
+                        case "gt":esQueryHelper.and(ESQueryHelper.gt(searchParam.getColumn(),searchParam.getVal().toString()));break;
+                        case "lt":esQueryHelper.and(ESQueryHelper.lt(searchParam.getColumn(),searchParam.getVal().toString()));break;
+                        case "between": esQueryHelper.and(QueryBuilders.rangeQuery(searchParam.getColumn()).gt(searchParam.getVal().toString().split(",")[0]).lte(searchParam.getVal().toString().split(",")[1]));break;
+                        case "match":esQueryHelper.and(ESQueryHelper.match(searchParam.getColumn(),searchParam.getVal()));break;
+                    }
+                }else {
+                    esQueryHelper.orNew(searchParam.getOrs());
+                }
+            });
+            if(sortFields!=null){
+                List<SortField> sortFieldList = JSON.parseArray(sortFields, SortField.class);
+                sortFieldList.forEach(sortField -> {
+                    if("asc".equals(sortField.getSort())){
+                        esQueryHelper.asc(sortField.getField());
+                    }else {
+                        esQueryHelper.desc(sortField.getField());
+                    }
+                });
+            }
+            SearchResponse searchResponse = esQueryHelper.execute(client);// 异常自己处理
+            List<String> list = Arrays.stream(searchResponse.getHits().getHits()).map(SearchHit::getSourceAsString).collect(Collectors.toList());
+            Long value = searchResponse.getHits().getTotalHits().value;
+            PageList<String> pageList = new PageList<>();
+            pageList.setList(list);
+            pageList.setTotalElements(value);
+            baseResult.setObj(pageList);
+            baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
+            baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
+        } catch (NumberFormatException | IOException e) {
+            baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+            baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
+        }
+        return baseResult;
+    }
+
+
+    @ApiOperation(value = "通用查询数量", httpMethod = "GET")
+    @ResponseBody
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "index", value = "index索引名称", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "searchParam", value = "查询参数", required = true, dataType = "String", paramType = "query")})
+    @GetMapping("/es/commonQueryCount")
+    public BaseResult common_query_count(HttpServletRequest request){
+        String index = request.getParameter("index");
+        String searchParamJson = request.getParameter("searchParam");
+        BaseResult baseResult = new BaseResult();
+        try {
+            List<SearchParam> searchParams = JSON.parseArray(searchParamJson, SearchParam.class);
+            ESQueryHelper esQueryHelper = ESQueryHelper.build(index);
+
+            searchParams.forEach(searchParam -> {
+                if("and".equals(searchParam.getOperator())) {
+                    switch (searchParam.getType()) {
+                        case "equals":esQueryHelper.and(ESQueryHelper.equals(searchParam.getColumn(),searchParam.getVal()));break;
+                        case "in":esQueryHelper.and(ESQueryHelper.in(searchParam.getColumn(),searchParam.getVal()));break;
+                        case "like":esQueryHelper.and(ESQueryHelper.like(searchParam.getColumn(),searchParam.getVal().toString()));break;
+                        case "leftLike":esQueryHelper.and(ESQueryHelper.leftLike(searchParam.getColumn(),searchParam.getVal().toString()));break;
+                        case "rightLike":esQueryHelper.and(ESQueryHelper.rightLike(searchParam.getColumn(),searchParam.getVal().toString()));break;
+                        case "gt":esQueryHelper.and(ESQueryHelper.gt(searchParam.getColumn(),searchParam.getVal().toString()));break;
+                        case "lt":esQueryHelper.and(ESQueryHelper.lt(searchParam.getColumn(),searchParam.getVal().toString()));break;
+                        case "between": esQueryHelper.and(QueryBuilders.rangeQuery(searchParam.getColumn()).gt(searchParam.getVal().toString().split(",")[0]).lte(searchParam.getVal().toString().split(",")[1]));break;
+                        case "match":esQueryHelper.and(ESQueryHelper.match(searchParam.getColumn(),searchParam.getVal()));break;
+                    }
+                }else {
+                    esQueryHelper.orNew(searchParam.getOrs());
+                }
+            });
+
+            CountRequest countRequest = new CountRequest(index);
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+            searchSourceBuilder.query(esQueryHelper.getBool());
+            countRequest.source(searchSourceBuilder);
+            CountResponse countResponse = client.count(countRequest, RequestOptions.DEFAULT);
+            long count = countResponse.getCount();
+            baseResult.setObj(count);
             baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
             baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
         } catch (NumberFormatException | IOException e) {

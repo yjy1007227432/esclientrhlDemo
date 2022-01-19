@@ -1,6 +1,7 @@
 package org.zxp.esclientrhl.demo.domain;
 
 
+import lombok.Data;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -8,6 +9,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * es查询辅助类
@@ -22,6 +25,7 @@ import java.util.List;
  * @Author lix
  * @Date 2021/1/14
  */
+@Data
 public class ESQueryHelper {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -323,6 +327,23 @@ public class ESQueryHelper {
      */
     public ESQueryHelper asc(String field) {
         this.searchRequest.source().sort(field, SortOrder.ASC);
+        return this;
+    }
+
+
+    /**
+     * 高亮某些字段
+     * @param field
+     * @param preTags
+     * @param postTags
+     * @return
+     */
+    public ESQueryHelper highlighter(String field,String preTags,String postTags) {
+        HighlightBuilder highlightBuilder = new HighlightBuilder();
+        highlightBuilder.field(field, 10)
+                .preTags(Optional.ofNullable(preTags).orElse("<font color='yellow'>"))
+                .postTags((Optional.ofNullable(postTags).orElse("</font>")));
+        this.searchRequest.source().highlighter(highlightBuilder);
         return this;
     }
 

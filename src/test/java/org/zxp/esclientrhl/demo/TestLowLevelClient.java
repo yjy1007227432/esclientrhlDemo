@@ -26,7 +26,7 @@ import java.util.List;
 public class TestLowLevelClient extends EsclientrhlDemoApplicationTests {
 
 
-    @Qualifier(value = "ElasticsearchTemplateNew")
+    @Autowired
     private ElasticsearchTemplateNew elasticsearchTemplateNew;
 
     @Test
@@ -47,8 +47,8 @@ public class TestLowLevelClient extends EsclientrhlDemoApplicationTests {
 
     @Test
     public void test() throws Exception {
-        List<IndexDemo> result = elasticsearchTemplateNew.queryBySQL("select * from index_demo",IndexDemo.class);
-        String result2 = elasticsearchTemplateNew.queryBySQL("select * from index_demo", SqlFormat.JSON);
+//     List<IndexDemo> result = elasticsearchTemplateNew.queryBySQL("select * from index_demo",IndexDemo.class);
+        String result2 = elasticsearchTemplateNew.queryBySQL("select count(1) from xihueventinfo_ik", SqlFormat.JSON);
 
 
         System.out.println();
