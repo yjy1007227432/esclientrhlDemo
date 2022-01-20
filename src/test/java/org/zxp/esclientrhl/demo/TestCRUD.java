@@ -341,6 +341,7 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         IndexDemo main1 = new IndexDemo();
         main1.setProposal_no("aaa");
         main1.setBusiness_nature_name("aaaaaa2");
+        main1.setSum_amount(10);
         IndexDemo main2 = new IndexDemo();
         main2.setProposal_no("bbb");
         main2.setBusiness_nature_name("aaaaaa2");
@@ -351,6 +352,9 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         main4.setProposal_no("ddd");
         main4.setBusiness_nature_name("aaaaaa2");
         main4.setCom_code("aa");
+        main2.setSum_amount(10);
+        main3.setSum_amount(10);
+        main4.setSum_amount(10);
         elasticsearchTemplateNew.bulkUpdateBatch(Arrays.asList(main1, main2, main3, main4));
     }
 

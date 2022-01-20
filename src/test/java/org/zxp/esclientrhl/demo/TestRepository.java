@@ -29,6 +29,7 @@ public class TestRepository extends EsclientrhlDemoApplicationTests {
         main2.setProposal_no("qq123549440");
         main2.setBusiness_nature_name("渠道");
         main2.setAppli_name("esclientrhl");
+        main2.setSum_premium(1);
         indexDemoRepository.save(main2);
     }
 

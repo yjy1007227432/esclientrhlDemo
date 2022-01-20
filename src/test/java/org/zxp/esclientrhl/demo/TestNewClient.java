@@ -1,6 +1,7 @@
 package org.zxp.esclientrhl.demo;
 
 import com.alibaba.fastjson.JSON;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
@@ -29,12 +30,13 @@ import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.ReindexRequest;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.ParsedSum;
-import org.elasticsearch.search.aggregations.metrics.ValueCount;
+import org.elasticsearch.search.aggregations.metrics.*;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
@@ -60,6 +62,7 @@ import java.util.stream.Collectors;
  * @author: X-Pacific zhang
  * @create: 2019-01-07 11:45
  **/
+@Slf4j
 public class TestNewClient extends EsclientrhlDemoApplicationTests {
     @Autowired
     RestHighLevelClient client;
@@ -136,23 +139,92 @@ public class TestNewClient extends EsclientrhlDemoApplicationTests {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
-
-
-//        ActionListener<CreateIndexResponse> listener = new ActionListener<CreateIndexResponse>() {
-//            @Override
-//            public void onResponse(CreateIndexResponse createIndexResponse) {
-//                //如果执行成功，则调用onResponse方法;
-//            }
-//            @Override
-//            public void onFailure(Exception e) {
-//                //如果失败，则调用onFailure方法。
-//            }
-//        };
-//        client.indices().createAsync(request, listener);
-
     }
+
+
+    @Test
+    public  void testAggs() throws IOException {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        /**
+         * 使用tag字段进行桶分组
+         * 使用sum、avg进行指标聚合
+         */
+        TermsAggregationBuilder aggregationBuilder = AggregationBuilders.
+                terms("tag_tr").field("street.keyword").
+                subAggregation(AggregationBuilders.count("avg_id").field("latitude.keyword"));; //求平均值
+
+
+        searchSourceBuilder.aggregation(aggregationBuilder);
+        /**
+         * 不输出原始数据
+         */
+        searchSourceBuilder.size(0);
+        /**
+         * 打印dsl语句
+         */
+        log.info("dsl:" + searchSourceBuilder.toString());
+        /**
+         * 设置索引以及填充语句
+         */
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices("xihueventinfo_ik");
+        searchRequest.source(searchSourceBuilder);
+
+        SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
+        /**
+         * 解析数据，获取tag_tr的指标聚合参数。
+         */
+        Aggregations aggregations = response.getAggregations();
+        ParsedStringTerms parsedStringTerms = aggregations.get("tag_tr");
+        List<? extends Terms.Bucket> buckets = parsedStringTerms.getBuckets();
+        for (Terms.Bucket bucket : buckets) {
+            //key的数据
+            String key = bucket.getKey().toString();
+            long docCount = bucket.getDocCount();
+            //获取数据
+            Aggregations bucketAggregations = bucket.getAggregations();
+//            ParsedSum sumId = bucketAggregations.get("sum_id");
+            ParsedValueCount avgId = bucketAggregations.get("avg_id");
+//            System.out.println(key + ":" + docCount + "-" + sumId.getValue() + "-" + avgId.getValue());
+            System.out.println(key + ":" + docCount + "-"+avgId.getValueAsString());
+        }
+    }
+
+
+
+    @Test
+    public  void testMetric() throws IOException {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        /**
+         * 使用tag字段进行桶分组
+         * 使用sum、avg进行指标聚合
+         */
+        SumAggregationBuilder aggregationBuilder = AggregationBuilders.sum("avg_sum_premium").field("sum_premium");
+
+        searchSourceBuilder.aggregation(aggregationBuilder);
+        /**
+         * 不输出原始数据
+         */
+        searchSourceBuilder.size(0);
+        /**
+         * 打印dsl语句
+         */
+        log.info("dsl:" + searchSourceBuilder.toString());
+        /**
+         * 设置索引以及填充语句
+         */
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices("index_demo");
+        searchRequest.source(searchSourceBuilder);
+
+        SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
+        /**
+         * 解析数据，获取tag_tr的指标聚合参数。
+         */
+        ParsedSum premium = response.getAggregations().get("avg_sum_premium");
+        System.out.println(premium.getValue());
+    }
+
 
 
     @Test
