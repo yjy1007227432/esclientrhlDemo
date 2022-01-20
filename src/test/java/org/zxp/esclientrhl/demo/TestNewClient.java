@@ -3,6 +3,7 @@ package org.zxp.esclientrhl.demo;
 import com.alibaba.fastjson.JSON;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
@@ -24,6 +25,8 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.ReindexRequest;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -149,8 +152,50 @@ public class TestNewClient extends EsclientrhlDemoApplicationTests {
 //        };
 //        client.indices().createAsync(request, listener);
 
-
     }
+
+
+    @Test
+    public void addAlias() throws IOException {
+        IndicesAliasesRequest aliasesRequest = new IndicesAliasesRequest();
+        IndicesAliasesRequest.AliasActions aliasAction =
+                new IndicesAliasesRequest.AliasActions(IndicesAliasesRequest.AliasActions.Type.ADD)
+                        .index("index_demo")
+                        .alias("index_demo4");
+        aliasesRequest.addAliasAction(aliasAction);
+        AcknowledgedResponse acknowledgedResponse = client.indices().updateAliases(aliasesRequest,RequestOptions.DEFAULT);
+        System.out.println(acknowledgedResponse);
+    }
+
+    @Test
+    public void dropAlias() throws IOException {
+        IndicesAliasesRequest aliasesRequest = new IndicesAliasesRequest();
+        IndicesAliasesRequest.AliasActions aliasAction =
+                new IndicesAliasesRequest.AliasActions(IndicesAliasesRequest.AliasActions.Type.REMOVE)
+                        .index("index_demo")
+                        .alias("index_demo2");
+        aliasesRequest.addAliasAction(aliasAction);
+        AcknowledgedResponse acknowledgedResponse = client.indices().updateAliases(aliasesRequest,RequestOptions.DEFAULT);
+        System.out.println(acknowledgedResponse);
+    }
+
+
+    @Test
+    public void reindex() throws IOException {
+        ReindexRequest request = new ReindexRequest();
+        request.setSourceIndices("index_demo");
+        request.setDestIndex("new_index_demo");
+        request.setSourceBatchSize(1000);
+        request.setDestOpType("create");
+        request.setConflicts("proceed");
+//        request.setScroll(TimeValue.timeValueMinutes(10));
+//        request.setTimeout(TimeValue.timeValueMinutes(20));
+        request.setRefresh(true);
+        BulkByScrollResponse response = client.reindex(request, RequestOptions.DEFAULT);
+        System.out.println();
+    }
+
+
 
 
     @Test

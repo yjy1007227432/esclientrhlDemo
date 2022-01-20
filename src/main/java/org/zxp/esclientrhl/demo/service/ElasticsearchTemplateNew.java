@@ -1,6 +1,12 @@
 package org.zxp.esclientrhl.demo.service;
 
 
+import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.reindex.ReindexRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.zxp.esclientrhl.demo.enums.DataTypeNew;
@@ -11,6 +17,7 @@ import org.zxp.esclientrhl.enums.SqlFormat;
 import org.zxp.esclientrhl.repository.ElasticsearchTemplateImpl;
 import org.zxp.esclientrhl.util.JsonUtils;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -22,6 +29,8 @@ import java.util.Map;
 @Component
 public class ElasticsearchTemplateNew<T, M> extends ElasticsearchTemplateImpl<T, M> {
 
+    @Autowired
+    RestHighLevelClient client;
 
 
     public List<T> queryBySQL(String sql, Class<T> clazz) throws Exception {
@@ -34,6 +43,88 @@ public class ElasticsearchTemplateNew<T, M> extends ElasticsearchTemplateImpl<T,
             }
         }
         return result;
+    }
+
+
+    /**
+     * 添加别名
+     * @param indexName
+     * @param aliasName
+     * @return
+     * @throws IOException
+     */
+    public Boolean addAlias(String indexName, String aliasName) throws IOException {
+        IndicesAliasesRequest aliasesRequest = new IndicesAliasesRequest();
+        IndicesAliasesRequest.AliasActions aliasAction =
+                new IndicesAliasesRequest.AliasActions(IndicesAliasesRequest.AliasActions.Type.ADD)
+                        .index(indexName)
+                        .alias(aliasName);
+        aliasesRequest.addAliasAction(aliasAction);
+        AcknowledgedResponse acknowledgedResponse = client.indices().updateAliases(aliasesRequest,RequestOptions.DEFAULT);
+        return acknowledgedResponse.isAcknowledged();
+    }
+
+
+    /**
+     * 删除别名
+     * @param indexName
+     * @param aliasName
+     * @return
+     * @throws IOException
+     */
+    public Boolean dropAlias(String indexName, String aliasName) throws IOException {
+        IndicesAliasesRequest aliasesRequest = new IndicesAliasesRequest();
+        IndicesAliasesRequest.AliasActions aliasAction =
+                new IndicesAliasesRequest.AliasActions(IndicesAliasesRequest.AliasActions.Type.REMOVE)
+                        .index(indexName)
+                        .alias(aliasName);
+        aliasesRequest.addAliasAction(aliasAction);
+        AcknowledgedResponse acknowledgedResponse = client.indices().updateAliases(aliasesRequest,RequestOptions.DEFAULT);
+        return acknowledgedResponse.isAcknowledged();
+    }
+
+    /**
+     * 重建索引后修改别名
+     *
+     * @param aliasname
+     * @param oldIndexname
+     * @param newIndexname
+     * @return
+     */
+    public Boolean changeAliasAfterReindex(String aliasname, String oldIndexname, String newIndexname) throws IOException {
+        IndicesAliasesRequest.AliasActions addIndexAction = new IndicesAliasesRequest.AliasActions(
+                IndicesAliasesRequest.AliasActions.Type.ADD).index(newIndexname).alias(aliasname);
+        IndicesAliasesRequest.AliasActions removeAction = new IndicesAliasesRequest.AliasActions(
+                IndicesAliasesRequest.AliasActions.Type.REMOVE).index(oldIndexname).alias(aliasname);
+
+        IndicesAliasesRequest indicesAliasesRequest = new IndicesAliasesRequest();
+        indicesAliasesRequest.addAliasAction(addIndexAction);
+        indicesAliasesRequest.addAliasAction(removeAction);
+        AcknowledgedResponse indicesAliasesResponse = client.indices().updateAliases(indicesAliasesRequest,
+                RequestOptions.DEFAULT);
+        return indicesAliasesResponse.isAcknowledged();
+    }
+
+
+
+
+    /**
+     * 重建索引，拷贝数据
+     *
+     * @param oldIndexname
+     * @param newIndexname
+     */
+    public void reindex(String oldIndexname, String newIndexname) throws IOException {
+        ReindexRequest request = new ReindexRequest();
+        request.setSourceIndices(oldIndexname);
+        request.setDestIndex(newIndexname);
+        request.setSourceBatchSize(1000);
+        request.setDestOpType("create");
+        request.setConflicts("proceed");
+//        request.setScroll(TimeValue.timeValueMinutes(10));
+//        request.setTimeout(TimeValue.timeValueMinutes(20));
+        request.setRefresh(true);
+        client.reindex(request, RequestOptions.DEFAULT);
     }
 
 

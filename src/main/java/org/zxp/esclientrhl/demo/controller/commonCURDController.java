@@ -601,4 +601,88 @@ public class commonCURDController {
         return baseResult;
     }
 
+
+    /**
+     * 为索引增加别名
+     * @param request
+     * @return
+     * @throws Exception
+     */
+
+    @ApiOperation(value = "为索引增加别名", httpMethod = "GET")
+    @ResponseBody
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "indexName", value = "需要修改的索引名", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "aliasName", value = "需要增加的别名", required = true, dataType = "String", paramType = "query")})
+    @GetMapping("/es/commonAddAlias")
+    public BaseResult addAlias(HttpServletRequest request) throws Exception {
+        String indexName = request.getParameter("indexName");
+        String aliasName = request.getParameter("aliasName");
+        BaseResult baseResult = new BaseResult();
+        try {
+            Boolean isAcknowledged = elasticsearchTemplateNew.addAlias(indexName,aliasName);
+            baseResult.setObj(isAcknowledged);
+            baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
+            baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
+        } catch (Exception e) {
+            baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+            baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
+        }
+        return baseResult;
+    }
+
+
+
+    /**
+     * 为索引增加别名
+     * @param request
+     * @return
+     * @throws Exception
+     */
+
+    @ApiOperation(value = "为索引删除别名", httpMethod = "GET")
+    @ResponseBody
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "indexName", value = "需要修改的索引名", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "aliasName", value = "需要删除的别名", required = true, dataType = "String", paramType = "query")})
+    @GetMapping("/es/commonDropAlias")
+    public BaseResult dropAlias(HttpServletRequest request) throws Exception {
+        String indexName = request.getParameter("indexName");
+        String aliasName = request.getParameter("aliasName");
+        BaseResult baseResult = new BaseResult();
+        try {
+            Boolean isAcknowledged = elasticsearchTemplateNew.dropAlias(indexName,aliasName);
+            baseResult.setObj(isAcknowledged);
+            baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
+            baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
+        } catch (Exception e) {
+            baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+            baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
+        }
+        return baseResult;
+    }
+
+
+
+    @ApiOperation(value = "重建索引，拷贝数据", httpMethod = "GET")
+    @ResponseBody
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "oldIndexname", value = "需要重建的老索引名", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "newIndexname", value = "需要重建的新索引名", required = true, dataType = "String", paramType = "query")})
+    @GetMapping("/es/commonReindex")
+    public BaseResult reindex(HttpServletRequest request) throws Exception {
+        String oldIndexname = request.getParameter("oldIndexname");
+        String newIndexname = request.getParameter("newIndexname");
+        BaseResult baseResult = new BaseResult();
+        try {
+            elasticsearchTemplateNew.reindex(oldIndexname,newIndexname);
+            baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
+            baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
+        } catch (Exception e) {
+            baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+            baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
+        }
+        return baseResult;
+    }
+
 }

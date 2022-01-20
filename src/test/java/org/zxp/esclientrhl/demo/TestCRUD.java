@@ -366,6 +366,13 @@ public class TestCRUD extends EsclientrhlDemoApplicationTests {
         list.forEach(s -> System.out.println(s));
     }
 
+
+    @Test
+    public void testAddAlias() throws Exception {
+       Boolean result =  elasticsearchTemplateNew.addAlias("index_demo","index_demo3");
+       System.out.println(result);
+    }
+
     /**
      * 通过sql进行查询
      *
