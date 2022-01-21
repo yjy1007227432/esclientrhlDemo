@@ -16,6 +16,8 @@ import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexRequest;
@@ -218,6 +220,45 @@ public class commonCURDController {
     }
 
 
+
+
+    @RequestMapping("/es/commonBulkAddOrUpdate")
+    @ApiOperation(value = "批量新增数据", httpMethod = "GET")
+    @ResponseBody
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "index", value = "索引名", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "source", value = "数据json", required = true, dataType = "String", paramType = "query")
+    })
+    public BaseResult common_bulk_add(HttpServletRequest request)  {
+        BaseResult baseResult = new BaseResult();
+        String index = request.getParameter("index");
+        String source = request.getParameter("source");
+        List<Object> objects = JSON.parseArray(source,Object.class);
+        BulkRequest bulkRequest = new BulkRequest(index);
+        objects.forEach(o -> {
+            IndexRequest indexRequest = new IndexRequest(index);
+            indexRequest.source(o, XContentType.JSON);
+            bulkRequest.add(indexRequest);
+        });
+        BulkResponse bulkResponse = null;
+        try {
+            bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);
+            if (!bulkResponse.hasFailures()) {
+                baseResult.setObj("创建成功");
+                baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
+                baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
+            }else {
+                baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+                baseResult.setResultMsg(Constants.OPERATION_FAIL + ":" + bulkResponse.buildFailureMessage());
+            }
+        } catch (Exception e) {
+            baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+            baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
+        }
+        return baseResult;
+    }
+
+
     /**
      * 根据id更新数据
      * @param request
@@ -250,7 +291,6 @@ public class commonCURDController {
             if (updateResponse.getResult() == DocWriteResponse.Result.CREATED) {
                 baseResult.setObj("创建成功");
             } else if (updateResponse.getResult() == DocWriteResponse.Result.UPDATED) {
-                System.out.println("修改成功");
                 baseResult.setObj("修改成功");
             }
             baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
@@ -641,7 +681,7 @@ public class commonCURDController {
     @ResponseBody
     @ApiImplicitParams({
             @ApiImplicitParam(name = "index", value = "索引名", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "searchParam", value = "查询参数", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "searchParam", value = "查询参数", required = false, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "field", value = "字段名", required = true, dataType = "String", paramType = "query")})
     @GetMapping("/es/commonAggMetric")
     public BaseResult aggMetric(HttpServletRequest request) throws Exception {
@@ -649,9 +689,13 @@ public class commonCURDController {
         String index = request.getParameter("index");
         String field = request.getParameter("field");
         String searchParamJson = request.getParameter("searchParam");
-
+        ESQueryHelper esQueryHelper;
         try {
-            ESQueryHelper esQueryHelper = ParseSearchParamUtil.ParseSearchParamUtil(searchParamJson,index);
+            if(searchParamJson!=null){
+                esQueryHelper = ParseSearchParamUtil.ParseSearchParamUtil(searchParamJson,index);
+            }else {
+                esQueryHelper = ESQueryHelper.build(index);
+            }
             Map<String,Object> result = elasticsearchTemplateNew.aggMetric(index,field,esQueryHelper);
             baseResult.setObj(result);
             baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
@@ -668,7 +712,7 @@ public class commonCURDController {
     @ResponseBody
     @ApiImplicitParams({
             @ApiImplicitParam(name = "index", value = "索引名", required = true, dataType = "String", paramType = "query"),
-            @ApiImplicitParam(name = "searchParam", value = "查询参数", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "searchParam", value = "查询参数", required = false, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "field", value = "字段名", required = true, dataType = "String", paramType = "query")})
     @GetMapping("/es/commonAggTerms")
     public BaseResult aggTerms(HttpServletRequest request) throws Exception {
@@ -677,7 +721,12 @@ public class commonCURDController {
         String field = request.getParameter("field");
         String searchParamJson = request.getParameter("searchParam");
         try {
-            ESQueryHelper esQueryHelper = ParseSearchParamUtil.ParseSearchParamUtil(searchParamJson,index);
+            ESQueryHelper esQueryHelper;
+            if(searchParamJson!=null){
+                esQueryHelper = ParseSearchParamUtil.ParseSearchParamUtil(searchParamJson,index);
+            }else {
+                esQueryHelper = ESQueryHelper.build(index);
+            }
             Map<String,Long> result = elasticsearchTemplateNew.aggTerms(index,field,esQueryHelper);
             baseResult.setObj(result);
             baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);

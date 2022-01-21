@@ -174,7 +174,7 @@ public class ElasticsearchTemplateNew<T, M> extends ElasticsearchTemplateImpl<T,
 //                         searchSourceBuilder.aggregation(valueCountAggregationBuilder); break;
             case "cardinality ":CardinalityAggregationBuilder cardinalityAggregationBuilder = AggregationBuilders.cardinality(type).field(field);
                                 searchSourceBuilder.aggregation(cardinalityAggregationBuilder); break;
-            case "stats ":StatsAggregationBuilder statsAggregationBuilder = AggregationBuilders.stats(type).field(field);
+            case "stats":StatsAggregationBuilder statsAggregationBuilder = AggregationBuilders.stats(type).field(field);
                 searchSourceBuilder.aggregation(statsAggregationBuilder); break;
         }
         /**
@@ -225,6 +225,7 @@ public class ElasticsearchTemplateNew<T, M> extends ElasticsearchTemplateImpl<T,
                 terms("aggTerms").field(field); //求平均值
 
         searchSourceBuilder.aggregation(aggregationBuilder);
+        searchSourceBuilder.query(esQueryHelper.getBool());
         /**
          * 不输出原始数据
          */
@@ -245,7 +246,10 @@ public class ElasticsearchTemplateNew<T, M> extends ElasticsearchTemplateImpl<T,
          * 解析数据，获取tag_tr的指标聚合参数。
          */
         Aggregations aggregations = response.getAggregations();
-        ParsedStringTerms parsedStringTerms = aggregations.get("tag_tr");
+        ParsedStringTerms parsedStringTerms = aggregations.get("aggTerms");
+        if(parsedStringTerms==null){
+            return null;
+        }
         List<? extends Terms.Bucket> buckets = parsedStringTerms.getBuckets();
         Map<String,Long> result = new HashMap<>();
         for (Terms.Bucket bucket : buckets) {
