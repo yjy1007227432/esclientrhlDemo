@@ -47,6 +47,7 @@ import org.zxp.esclientrhl.demo.domain.*;
 import org.zxp.esclientrhl.demo.enums.Constants;
 import org.zxp.esclientrhl.demo.response.SqlResponse;
 import org.zxp.esclientrhl.demo.service.ElasticsearchTemplateNew;
+import org.zxp.esclientrhl.demo.util.ParseSearchParamUtil;
 import org.zxp.esclientrhl.enums.SqlFormat;
 import org.zxp.esclientrhl.repository.ElasticsearchTemplate;
 import org.zxp.esclientrhl.repository.PageList;
@@ -412,26 +413,7 @@ public class commonCURDController {
         String highLightField = request.getParameter("highLightField");
         BaseResult baseResult = new BaseResult();
         try {
-            List<SearchParam> searchParams = JSON.parseArray(searchParamJson, SearchParam.class);
-            ESQueryHelper esQueryHelper = ESQueryHelper.build(index);
-
-            searchParams.forEach(searchParam -> {
-                if("and".equals(searchParam.getOperator())) {
-                    switch (searchParam.getType()) {
-                        case "equals":esQueryHelper.and(ESQueryHelper.equals(searchParam.getColumn(),searchParam.getVal()));break;
-                        case "in":esQueryHelper.and(ESQueryHelper.in(searchParam.getColumn(),searchParam.getVal()));break;
-                        case "like":esQueryHelper.and(ESQueryHelper.like(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "leftLike":esQueryHelper.and(ESQueryHelper.leftLike(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "rightLike":esQueryHelper.and(ESQueryHelper.rightLike(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "gt":esQueryHelper.and(ESQueryHelper.gt(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "lt":esQueryHelper.and(ESQueryHelper.lt(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "between": esQueryHelper.and(QueryBuilders.rangeQuery(searchParam.getColumn()).gt(searchParam.getVal().toString().split(",")[0]).lte(searchParam.getVal().toString().split(",")[1]));break;
-                        case "match":esQueryHelper.and(ESQueryHelper.match(searchParam.getColumn(),searchParam.getVal()));break;
-                    }
-                }else {
-                    esQueryHelper.orNew(searchParam.getOrs());
-                }
-            });
+            ESQueryHelper esQueryHelper = ParseSearchParamUtil.ParseSearchParamUtil(searchParamJson,index);
 
             if(highLightField!=null){
                 esQueryHelper.highlighter(highLightField,null,null);
@@ -506,26 +488,7 @@ public class commonCURDController {
         String sortFields = request.getParameter("sortFields");
         BaseResult baseResult = new BaseResult();
         try {
-            List<SearchParam> searchParams = JSON.parseArray(searchParamJson, SearchParam.class);
-            ESQueryHelper esQueryHelper = ESQueryHelper.build(index);
-
-            searchParams.forEach(searchParam -> {
-                if("and".equals(searchParam.getOperator())) {
-                    switch (searchParam.getType()) {
-                        case "equals":esQueryHelper.and(ESQueryHelper.equals(searchParam.getColumn(),searchParam.getVal()));break;
-                        case "in":esQueryHelper.and(ESQueryHelper.in(searchParam.getColumn(),searchParam.getVal()));break;
-                        case "like":esQueryHelper.and(ESQueryHelper.like(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "leftLike":esQueryHelper.and(ESQueryHelper.leftLike(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "rightLike":esQueryHelper.and(ESQueryHelper.rightLike(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "gt":esQueryHelper.and(ESQueryHelper.gt(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "lt":esQueryHelper.and(ESQueryHelper.lt(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "between": esQueryHelper.and(QueryBuilders.rangeQuery(searchParam.getColumn()).gt(searchParam.getVal().toString().split(",")[0]).lte(searchParam.getVal().toString().split(",")[1]));break;
-                        case "match":esQueryHelper.and(ESQueryHelper.match(searchParam.getColumn(),searchParam.getVal()));break;
-                    }
-                }else {
-                    esQueryHelper.orNew(searchParam.getOrs());
-                }
-            });
+            ESQueryHelper esQueryHelper = ParseSearchParamUtil.ParseSearchParamUtil(searchParamJson,index);
             if(sortFields!=null){
                 List<SortField> sortFieldList = JSON.parseArray(sortFields, SortField.class);
                 sortFieldList.forEach(sortField -> {
@@ -564,27 +527,7 @@ public class commonCURDController {
         String searchParamJson = request.getParameter("searchParam");
         BaseResult baseResult = new BaseResult();
         try {
-            List<SearchParam> searchParams = JSON.parseArray(searchParamJson, SearchParam.class);
-            ESQueryHelper esQueryHelper = ESQueryHelper.build(index);
-
-            searchParams.forEach(searchParam -> {
-                if("and".equals(searchParam.getOperator())) {
-                    switch (searchParam.getType()) {
-                        case "equals":esQueryHelper.and(ESQueryHelper.equals(searchParam.getColumn(),searchParam.getVal()));break;
-                        case "in":esQueryHelper.and(ESQueryHelper.in(searchParam.getColumn(),searchParam.getVal()));break;
-                        case "like":esQueryHelper.and(ESQueryHelper.like(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "leftLike":esQueryHelper.and(ESQueryHelper.leftLike(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "rightLike":esQueryHelper.and(ESQueryHelper.rightLike(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "gt":esQueryHelper.and(ESQueryHelper.gt(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "lt":esQueryHelper.and(ESQueryHelper.lt(searchParam.getColumn(),searchParam.getVal().toString()));break;
-                        case "between": esQueryHelper.and(QueryBuilders.rangeQuery(searchParam.getColumn()).gt(searchParam.getVal().toString().split(",")[0]).lte(searchParam.getVal().toString().split(",")[1]));break;
-                        case "match":esQueryHelper.and(ESQueryHelper.match(searchParam.getColumn(),searchParam.getVal()));break;
-                    }
-                }else {
-                    esQueryHelper.orNew(searchParam.getOrs());
-                }
-            });
-
+            ESQueryHelper esQueryHelper = ParseSearchParamUtil.ParseSearchParamUtil(searchParamJson,index);
             CountRequest countRequest = new CountRequest(index);
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
             searchSourceBuilder.query(esQueryHelper.getBool());
@@ -676,6 +619,67 @@ public class commonCURDController {
         BaseResult baseResult = new BaseResult();
         try {
             elasticsearchTemplateNew.reindex(oldIndexname,newIndexname);
+            baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
+            baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
+        } catch (Exception e) {
+            baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+            baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
+        }
+        return baseResult;
+    }
+
+
+
+
+    @ApiOperation(value = "Metric Aggregation ES指标聚合\n" +
+            "     avg 平均值\n" +
+            "     max 最大值\n" +
+            "     min 最小值\n" +
+            "     sum 和\n" +
+            "     value_count 数量\n" +
+            "     cardinality 基数（distinct去重）", httpMethod = "GET")
+    @ResponseBody
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "index", value = "索引名", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "searchParam", value = "查询参数", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "field", value = "字段名", required = true, dataType = "String", paramType = "query")})
+    @GetMapping("/es/commonAggMetric")
+    public BaseResult aggMetric(HttpServletRequest request) throws Exception {
+        BaseResult baseResult = new BaseResult();
+        String index = request.getParameter("index");
+        String field = request.getParameter("field");
+        String searchParamJson = request.getParameter("searchParam");
+
+        try {
+            ESQueryHelper esQueryHelper = ParseSearchParamUtil.ParseSearchParamUtil(searchParamJson,index);
+            Map<String,Object> result = elasticsearchTemplateNew.aggMetric(index,field,esQueryHelper);
+            baseResult.setObj(result);
+            baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
+            baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
+        } catch (Exception e) {
+            baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+            baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
+        }
+        return baseResult;
+    }
+
+
+    @ApiOperation(value = "使用field字段进行桶分组聚合", httpMethod = "GET")
+    @ResponseBody
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "index", value = "索引名", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "searchParam", value = "查询参数", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "field", value = "字段名", required = true, dataType = "String", paramType = "query")})
+    @GetMapping("/es/commonAggTerms")
+    public BaseResult aggTerms(HttpServletRequest request) throws Exception {
+        BaseResult baseResult = new BaseResult();
+        String index = request.getParameter("index");
+        String field = request.getParameter("field");
+        String searchParamJson = request.getParameter("searchParam");
+        try {
+            ESQueryHelper esQueryHelper = ParseSearchParamUtil.ParseSearchParamUtil(searchParamJson,index);
+            Map<String,Long> result = elasticsearchTemplateNew.aggTerms(index,field,esQueryHelper);
+            baseResult.setObj(result);
             baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
             baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
         } catch (Exception e) {

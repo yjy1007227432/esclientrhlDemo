@@ -199,7 +199,7 @@ public class TestNewClient extends EsclientrhlDemoApplicationTests {
          * 使用tag字段进行桶分组
          * 使用sum、avg进行指标聚合
          */
-        SumAggregationBuilder aggregationBuilder = AggregationBuilders.sum("avg_sum_premium").field("sum_premium");
+        StatsAggregationBuilder aggregationBuilder = AggregationBuilders.stats ("avg_sum_premium").field("sum_premium");
 
         searchSourceBuilder.aggregation(aggregationBuilder);
         /**
@@ -221,8 +221,8 @@ public class TestNewClient extends EsclientrhlDemoApplicationTests {
         /**
          * 解析数据，获取tag_tr的指标聚合参数。
          */
-        ParsedSum premium = response.getAggregations().get("avg_sum_premium");
-        System.out.println(premium.getValue());
+        ParsedStats premium = response.getAggregations().get("avg_sum_premium");
+        System.out.println(premium.getMax());
     }
 
 

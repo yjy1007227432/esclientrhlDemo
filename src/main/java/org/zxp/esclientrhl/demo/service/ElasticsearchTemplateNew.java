@@ -1,14 +1,26 @@
 package org.zxp.esclientrhl.demo.service;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.reindex.ReindexRequest;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.*;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.zxp.esclientrhl.demo.domain.ESQueryHelper;
 import org.zxp.esclientrhl.demo.enums.DataTypeNew;
 import org.zxp.esclientrhl.demo.response.SqlResponse;
 import org.zxp.esclientrhl.demo.util.DateUtil;
@@ -27,6 +39,7 @@ import java.util.Map;
 
 
 @Component
+@Slf4j
 public class ElasticsearchTemplateNew<T, M> extends ElasticsearchTemplateImpl<T, M> {
 
     @Autowired
@@ -125,6 +138,129 @@ public class ElasticsearchTemplateNew<T, M> extends ElasticsearchTemplateImpl<T,
 //        request.setTimeout(TimeValue.timeValueMinutes(20));
         request.setRefresh(true);
         client.reindex(request, RequestOptions.DEFAULT);
+    }
+
+    /**
+     * Metric Aggregation ES指标聚合
+     * avg 平均值
+     * max 最大值
+     * min 最小值
+     * sum 和
+     * value_count 数量
+     * cardinality 基数（distinct去重）
+     * stats 包含avg,max,min,sum和count
+     * @param index
+     * @param field
+     * @param esQueryHelper
+     * @return
+     * @throws IOException
+     */
+
+
+    public  Map<String, Object> aggMetric(String index, String field, ESQueryHelper esQueryHelper) throws IOException {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+
+        String type = "stats";
+        switch (type){
+//            case "sum":SumAggregationBuilder sumAggregationBuilder = AggregationBuilders.sum(type).field(field);
+//                       searchSourceBuilder.aggregation(sumAggregationBuilder); break;
+//            case "avg":AvgAggregationBuilder avgAggregationBuilder = AggregationBuilders.avg(type).field(field);
+//                       searchSourceBuilder.aggregation(avgAggregationBuilder); break;
+//            case "max":MaxAggregationBuilder maxAggregationBuilder = AggregationBuilders.max(type).field(field);
+//                       searchSourceBuilder.aggregation(maxAggregationBuilder); break;
+//            case "min":MinAggregationBuilder minAggregationBuilder = AggregationBuilders.min(type).field(field);
+//                       searchSourceBuilder.aggregation(minAggregationBuilder); break;
+//            case "count":ValueCountAggregationBuilder valueCountAggregationBuilder = AggregationBuilders.count(type).field(field);
+//                         searchSourceBuilder.aggregation(valueCountAggregationBuilder); break;
+            case "cardinality ":CardinalityAggregationBuilder cardinalityAggregationBuilder = AggregationBuilders.cardinality(type).field(field);
+                                searchSourceBuilder.aggregation(cardinalityAggregationBuilder); break;
+            case "stats ":StatsAggregationBuilder statsAggregationBuilder = AggregationBuilders.stats(type).field(field);
+                searchSourceBuilder.aggregation(statsAggregationBuilder); break;
+        }
+        /**
+         * 不输出原始数据
+         */
+        searchSourceBuilder.query(esQueryHelper.getBool());
+        searchSourceBuilder.size(0);
+        /**
+         * 打印dsl语句
+         */
+        log.info("dsl:" + searchSourceBuilder.toString());
+        /**
+         * 设置索引以及填充语句
+         */
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices(index);
+        searchRequest.source(searchSourceBuilder);
+        SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
+        /**
+         * 解析数据，获取tag_tr的指标聚合参数。
+         */
+        ParsedStats premium = response.getAggregations().get("stats");
+        Map<String,Object> result = new HashMap<>();
+        result.put("max",premium.getMax());
+        result.put("min",premium.getMin());
+        result.put("avg",premium.getAvg());
+        result.put("count",premium.getCount());
+        result.put("sum",premium.getSum());
+        return result;
+    }
+
+    /**
+     * 使用field字段进行桶分组聚合
+     * @param index
+     * @param field
+     * @param esQueryHelper
+     * @return
+     * @throws IOException
+     */
+
+    public  Map<String,Long> aggTerms(String index, String field, ESQueryHelper esQueryHelper) throws IOException {
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        /**
+         * 使用field字段进行桶分组
+         * 可以使用sum、avg进行指标聚合
+         */
+        TermsAggregationBuilder aggregationBuilder = AggregationBuilders.
+                terms("aggTerms").field(field); //求平均值
+
+        searchSourceBuilder.aggregation(aggregationBuilder);
+        /**
+         * 不输出原始数据
+         */
+        searchSourceBuilder.size(0);
+        /**
+         * 打印dsl语句
+         */
+        log.info("dsl:" + searchSourceBuilder.toString());
+        /**
+         * 设置索引以及填充语句
+         */
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices(index);
+        searchRequest.source(searchSourceBuilder);
+
+        SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
+        /**
+         * 解析数据，获取tag_tr的指标聚合参数。
+         */
+        Aggregations aggregations = response.getAggregations();
+        ParsedStringTerms parsedStringTerms = aggregations.get("tag_tr");
+        List<? extends Terms.Bucket> buckets = parsedStringTerms.getBuckets();
+        Map<String,Long> result = new HashMap<>();
+        for (Terms.Bucket bucket : buckets) {
+            //key的数据
+            String key = bucket.getKey().toString();
+            long docCount = bucket.getDocCount();
+            //获取数据
+            Aggregations bucketAggregations = bucket.getAggregations();
+//            ParsedSum sumId = bucketAggregations.get("sum_id");
+//            ParsedValueCount avgId = bucketAggregations.get("avg_id");
+//            System.out.println(key + ":" + docCount + "-" + sumId.getValue() + "-" + avgId.getValue());
+            result.put(key,docCount);
+//            System.out.println(key + ":" + docCount + "-"+avgId.getValueAsString());
+        }
+        return result;
     }
 
 
