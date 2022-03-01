@@ -121,6 +121,7 @@ public class ElasticsearchTemplateNew<T, M> extends ElasticsearchTemplateImpl<T,
 
 
 
+
     /**
      * 重建索引，拷贝数据
      *

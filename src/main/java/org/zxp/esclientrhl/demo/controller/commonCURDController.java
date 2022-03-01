@@ -3,6 +3,7 @@ package org.zxp.esclientrhl.demo.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -56,6 +57,7 @@ import org.zxp.esclientrhl.repository.PageList;
 import org.zxp.esclientrhl.util.JsonUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -237,7 +239,8 @@ public class commonCURDController {
         BulkRequest bulkRequest = new BulkRequest(index);
         objects.forEach(o -> {
             IndexRequest indexRequest = new IndexRequest(index);
-            indexRequest.source(o, XContentType.JSON);
+            indexRequest.id(JSONArray.parseObject(o.toString()).getString("id"));
+            indexRequest.source(JSON.toJSONString(o), XContentType.JSON);
             bulkRequest.add(indexRequest);
         });
         BulkResponse bulkResponse = null;
@@ -433,7 +436,7 @@ public class commonCURDController {
 
 
 
-    @ApiOperation(value = "通用分页查询", httpMethod = "GET")
+    @ApiOperation(value = "通用分页查询", httpMethod = "GET", produces = "application/json; charset=utf-8")
     @ResponseBody
     @ApiImplicitParams({
             @ApiImplicitParam(name = "index", value = "index索引名称", required = true, dataType = "String", paramType = "query"),
@@ -443,8 +446,8 @@ public class commonCURDController {
             @ApiImplicitParam(name = "sortFields", value = "排序字段", required = false, dataType = "String", paramType = "query"),
             @ApiImplicitParam(name = "highLightField", value = "高亮字段", required = false, dataType = "String", paramType = "query")
     })
-    @GetMapping("/es/commonQueryByPage")
-    public BaseResult common_query_page(HttpServletRequest request){
+    @RequestMapping(value = "/es/commonQueryByPage", produces = "application/json; charset=utf-8")
+    public BaseResult common_query_page(HttpServletRequest request, HttpServletResponse response){
         String index = request.getParameter("index");
         String searchParamJson = request.getParameter("searchParam");
         String curPage = Optional.ofNullable(request.getParameter("curPage")).orElse("0");
@@ -455,11 +458,12 @@ public class commonCURDController {
         try {
             ESQueryHelper esQueryHelper = ParseSearchParamUtil.ParseSearchParamUtil(searchParamJson,index);
 
-            if(highLightField!=null){
+            if(highLightField!=null&&!highLightField.equals("null")){
                 esQueryHelper.highlighter(highLightField,null,null);
             }
 
-            if(sortFields!=null){
+
+            if(sortFields!=null&&!sortFields.equals("null")&&!IsContainMatch(searchParamJson)){
                 List<SortField> sortFieldList = JSON.parseArray(sortFields, SortField.class);
                 sortFieldList.forEach(sortField -> {
                     if("asc".equals(sortField.getSort())){
@@ -471,7 +475,7 @@ public class commonCURDController {
             }
 
 
-            esQueryHelper.from(Integer.valueOf(curPage));
+            esQueryHelper.from((Integer.parseInt(curPage)-1)*Integer.parseInt(pageSize));
             esQueryHelper.size(Integer.valueOf(pageSize));
 
             SearchResponse searchResponse = esQueryHelper.execute(client);// 异常自己处理
@@ -736,6 +740,25 @@ public class commonCURDController {
             baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
         }
         return baseResult;
+    }
+
+
+    public boolean IsContainMatch(String searchParamJson){
+        List<SearchParam> searchParams = JSON.parseArray(searchParamJson, SearchParam.class);
+        for(SearchParam searchParam:searchParams){
+            if("match".equals(searchParam.getType())){
+                return true;
+            }
+            if("or".equals(searchParam.getOperator())){
+                List<SearchParam.Or> ors = JSON.parseArray(JSONObject.toJSONString(searchParam.getOrs()), SearchParam.Or.class);
+                for(SearchParam.Or or:ors){
+                    if("match".equals(or.getType())){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
 }

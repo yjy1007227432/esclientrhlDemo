@@ -92,6 +92,7 @@ public class ESQueryHelper {
                 case "leftLike":shouldQ.should(QueryBuilders.termQuery(or.getColumn(),"*".concat(or.getVal().toString())));break;
                 case "rightLike":shouldQ.should(QueryBuilders.termQuery(or.getColumn(),or.getVal().toString().concat("*")));break;
                 case "gt":shouldQ.should(QueryBuilders.rangeQuery(or.getColumn()).gt(or.getVal()));break;
+                case "match":shouldQ.should(ESQueryHelper.match(or.getColumn(),or.getVal()));break;
                 case "lt":shouldQ.should(QueryBuilders.rangeQuery(or.getColumn()).lt(or.getVal()));break;
                 case "between":shouldQ.should(QueryBuilders.rangeQuery(or.getColumn()).gt(or.getVal().toString().split(",")[0]).lte(or.getVal().toString().split(",")[1]));;break;
             }
@@ -235,6 +236,10 @@ public class ESQueryHelper {
      */
     public static QueryBuilder match(String column, Object text) {
         return QueryBuilders.matchQuery(column, text);
+    }
+
+    public static QueryBuilder matchPhrase(String column, Object text) {
+        return QueryBuilders.matchPhraseQuery(column, text);
     }
 
     /**

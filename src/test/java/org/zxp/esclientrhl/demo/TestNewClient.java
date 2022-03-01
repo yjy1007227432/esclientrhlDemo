@@ -74,63 +74,65 @@ public class TestNewClient extends EsclientrhlDemoApplicationTests {
                 .put("index.number_of_shards", 3)
                 .put("index.number_of_replicas", 0)
         );
-        request.mapping("main",//类型定义
-                "  {\n" +
-                        "    \"main\": {\n" +
-                        "      \"properties\": {\n" +
-                        "        \"proposal_no\": {\n" +
-                        "          \"type\": \"keyword\"\n" +
-                        "        },\n" +
-                        "        \"risk_code\": {\n" +
-                        "          \"type\": \"keyword\"\n" +
-                        "        },\n" +
-                        "        \"risk_name\": {\n" +
-                        "          \"type\": \"text\"\n" +
-                        "        },\n" +
-                        "        \"business_nature\": {\n" +
-                        "          \"type\": \"keyword\"\n" +
-                        "        },\n" +
-                        "        \"business_nature_name\": {\n" +
-                        "          \"type\": \"text\"\n" +
-                        "        },\n" +
-                        "        \"appli_code\": {\n" +
-                        "          \"type\": \"keyword\"\n" +
-                        "        },\n" +
-                        "        \"appli_name\": {\n" +
-                        "          \"type\": \"text\",\n" +
-                        "          \"fields\": {\"keyword\": {\"type\": \"keyword\",\"ignore_above\": 256}}" +
-                        "        },\n" +
-                        "        \"insured_code\": {\n" +
-                        "          \"type\": \"keyword\"\n" +
-                        "        },\n" +
-                        "        \"insured_name\": {\n" +
-                        "          \"type\": \"keyword\"\n" +
-                        "        },\n" +
-                        "        \"operate_date\": {\n" +
-                        "          \"type\": \"date\"\n" +
-                        "        },\n" +
-                        "        \"operate_date_format\": {\n" +
-                        "          \"type\": \"text\"\n" +
-                        "        },\n" +
-                        "        \"start_date\": {\n" +
-                        "          \"type\": \"date\"\n" +
-                        "        },\n" +
-                        "        \"end_date\": {\n" +
-                        "          \"type\": \"date\"\n" +
-                        "        },\n" +
-                        "        \"sum_amount\": {\n" +
-                        "          \"type\": \"double\"\n" +
-                        "        },\n" +
-                        "        \"sum_premium\": {\n" +
-                        "          \"type\": \"double\"\n" +
-                        "        },\n" +
-                        "        \"com_code\": {\n" +
-                        "          \"type\": \"keyword\"\n" +
-                        "        }\n" +
-                        "      }\n" +
-                        "    }\n" +
-                        "  }",//类型映射，需要的是一个JSON字符串
-                XContentType.JSON);
+        request.mapping("_doc","{\"_doc\":{\"properties\":{\"address\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"admincoding\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"cardId\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"checkreducestatus\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"city12345code\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"cityId\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"comment\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"commentdate\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"commentlable\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"communityId\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"communityadmincoding\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"communityname\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"content\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}},\"analyzer\":\"ik_smart\"},\"createTime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"districtId\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"doc\":{\"properties\":{\"content\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}}}},\"file\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"gridId\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"gridadmincoding\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"gridname\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"handleendtime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"handleintime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"handlestate\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"handletime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"huifangendtime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"huifangtime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"id\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"incId\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"incSource\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isDelayBanJie\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isDelayChuZhi\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isDelayHuiFang\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isDelayQianShou\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isDelayShouLi\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isDelete\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isHuifang\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isInc\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isbmczj\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isfeedback\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"ishandle\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isleaderpermit\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"ispeople\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isrecall\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isselfsolve\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"issend\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"issentry\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"isshouli\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"issign\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"issignremind\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"issolve\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"issupervise\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"istransfer\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"jcjftype\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"latitude\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"linkeventid\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"longitude\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"mobile\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"needvisitflag\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"noDealDate\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"noDealDepartid\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"noDealDepartname\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"noDealReason\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"noDealUser\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"noDealUserid\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"occurdate\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"partybuildingstate\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"placecode\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"platform\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"problemmark\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"recalltime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"recalluser\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"recalluserid\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"reportName\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"secret\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"serialnumber\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"shouliendtime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"shoulitime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"signdepartid\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"signdepartname\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"signendtime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"signintime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"signtime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"signuserid\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"signusername\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"sovleendtime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"sovleintime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"sovletime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"starNum\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"state\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"street\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"streetId\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"unsatisfactoryflag\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"updatetime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"userreporttype\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}},\"visitbackintime\":{\"type\":\"text\",\"fields\":{\"keyword\":{\"type\":\"keyword\",\"ignore_above\":256}}}}}}",
+        XContentType.JSON);
+//        request.mapping("main",//类型定义
+//                "  {\n" +
+//                        "    \"main\": {\n" +
+//                        "      \"properties\": {\n" +
+//                        "        \"proposal_no\": {\n" +
+//                        "          \"type\": \"keyword\"\n" +
+//                        "        },\n" +
+//                        "        \"risk_code\": {\n" +
+//                        "          \"type\": \"keyword\"\n" +
+//                        "        },\n" +
+//                        "        \"risk_name\": {\n" +
+//                        "          \"type\": \"text\"\n" +
+//                        "        },\n" +
+//                        "        \"business_nature\": {\n" +
+//                        "          \"type\": \"keyword\"\n" +
+//                        "        },\n" +
+//                        "        \"business_nature_name\": {\n" +
+//                        "          \"type\": \"text\"\n" +
+//                        "        },\n" +
+//                        "        \"appli_code\": {\n" +
+//                        "          \"type\": \"keyword\"\n" +
+//                        "        },\n" +
+//                        "        \"appli_name\": {\n" +
+//                        "          \"type\": \"text\",\n" +
+//                        "          \"fields\": {\"keyword\": {\"type\": \"keyword\",\"ignore_above\": 256}}" +
+//                        "        },\n" +
+//                        "        \"insured_code\": {\n" +
+//                        "          \"type\": \"keyword\"\n" +
+//                        "        },\n" +
+//                        "        \"insured_name\": {\n" +
+//                        "          \"type\": \"keyword\"\n" +
+//                        "        },\n" +
+//                        "        \"operate_date\": {\n" +
+//                        "          \"type\": \"date\"\n" +
+//                        "        },\n" +
+//                        "        \"operate_date_format\": {\n" +
+//                        "          \"type\": \"text\"\n" +
+//                        "        },\n" +
+//                        "        \"start_date\": {\n" +
+//                        "          \"type\": \"date\"\n" +
+//                        "        },\n" +
+//                        "        \"end_date\": {\n" +
+//                        "          \"type\": \"date\"\n" +
+//                        "        },\n" +
+//                        "        \"sum_amount\": {\n" +
+//                        "          \"type\": \"double\"\n" +
+//                        "        },\n" +
+//                        "        \"sum_premium\": {\n" +
+//                        "          \"type\": \"double\"\n" +
+//                        "        },\n" +
+//                        "        \"com_code\": {\n" +
+//                        "          \"type\": \"keyword\"\n" +
+//                        "        }\n" +
+//                        "      }\n" +
+//                        "    }\n" +
+//                        "  }",//类型映射，需要的是一个JSON字符串
+//                XContentType.JSON);
         try {
             CreateIndexResponse createIndexResponse = client.indices().create(request,RequestOptions.DEFAULT);
             //返回的CreateIndexResponse允许检索有关执行的操作的信息，如下所示：

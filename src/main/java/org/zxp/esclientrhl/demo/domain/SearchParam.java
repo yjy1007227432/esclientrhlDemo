@@ -14,7 +14,7 @@ public class SearchParam {
     private List<Or> ors;
 
     @Data
-    public class Or{
+    public static class Or{
         private String type;
         private String column;
         private Object val;
