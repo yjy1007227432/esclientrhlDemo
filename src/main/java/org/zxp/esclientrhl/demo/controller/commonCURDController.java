@@ -99,7 +99,7 @@ public class commonCURDController {
                 .put("index.number_of_shards", Optional.ofNullable(shards).orElse("3"))
                 .put("index.number_of_replicas", Optional.ofNullable(replicas).orElse("0"))
         );
-        createIndex.mapping(mapping,
+        createIndex.mapping("_doc",mapping,
                 XContentType.JSON);
         try {
             CreateIndexResponse createIndexResponse = client.indices().create(createIndex,RequestOptions.DEFAULT);
