@@ -786,6 +786,8 @@ public class commonCURDController {
 
 
 
+
+
             SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
             List<Map<String,String>> maps = new ArrayList<>();
             sqlResponse.getRows().forEach(row->{
