@@ -281,10 +281,11 @@ public class commonCURDController {
         String id = request.getParameter("id");
         String source = request.getParameter("source");
 
+        Map<String,Object> map = JSON.parseObject(source, HashMap.class);
         try {
             UpdateRequest updateRequest = new UpdateRequest(index, id);
 
-            updateRequest.doc(source);
+            updateRequest.doc(map);
             UpdateResponse updateResponse = null;
             try {
                 updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
@@ -299,6 +300,7 @@ public class commonCURDController {
             baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
             baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             baseResult.setResultCode(Constants.RESULTCODE_FAIL);
             baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
         }
@@ -760,5 +762,84 @@ public class commonCURDController {
         }
         return false;
     }
+
+    /**
+     * 通过sql查询es数据库
+     * @param request
+     * @throws Exception
+     */
+    @ApiOperation(value = "通过sql语句分页查询es数据库数据", httpMethod = "GET")
+    @ResponseBody
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "sql", value = "sql语句", required = true, dataType = "String", paramType = "query"),
+    })
+    @GetMapping("/es/commonQueryBySqlPage")
+    public BaseResult common_query_sql_page(HttpServletRequest request) throws Exception {
+        String sql = request.getParameter("sql");
+        BaseResult baseResult = new BaseResult();
+        try {
+            String result = elasticsearchTemplateNew.queryBySQL(sql, SqlFormat.JSON);
+
+            JSONArray array = JSONArray.parseArray(result);
+            List  list = getSubList(array,1,2);
+
+            SqlResponse sqlResponse = JsonUtils.string2Obj(result, SqlResponse.class);
+            List<Map<String,String>> maps = new ArrayList<>();
+            sqlResponse.getRows().forEach(row->{
+                HashMap<String,String> map = new HashMap<>();
+                for(int i=0;i<sqlResponse.getColumns().size();i++){
+                    map.put(sqlResponse.getColumns().get(i).getName(),Optional.ofNullable(row.get(i)).orElse(""));
+                }
+                maps.add(map);
+            });
+            String json = JsonUtils.obj2String(maps);
+            baseResult.setObj(json);
+            baseResult.setResultCode(Constants.RESULTCODE_SUCCESS);
+            baseResult.setResultMsg(Constants.OPERATION_SUCCESS);
+        } catch (Exception e) {
+            baseResult.setResultCode(Constants.RESULTCODE_FAIL);
+            baseResult.setResultMsg(Constants.OPERATION_FAIL+":"+e);
+        }
+        return baseResult;
+    }
+
+    /**
+     * 获取手动分页
+     * @param rows 数据列表，由返回的json转换而来
+     * @param pageNum 当前页码
+     * @param pageSize 每页条数
+     * @return
+     */
+    private List getSubList(JSONArray rows, Integer pageNum, Integer pageSize) {
+        //分页操作
+        int startIndex = 0;
+        int endIndex = rows.size();
+        if (pageNum != null && pageSize != null) {
+            startIndex = getStartIndex(pageNum, pageSize);
+            endIndex = getEndIndex(pageNum, pageSize);
+        }
+        List subList;
+        if (rows.size() >= endIndex) {
+            subList = rows.subList(startIndex, endIndex);
+        } else {
+            subList = rows.subList(startIndex, rows.size());
+        }
+        return subList;
+    }
+    /**
+     * 获取起始位置
+     * @return
+     */
+    public static int getStartIndex(int pageNum,int pageSize){
+        return 0+(pageNum-1)*pageSize;
+    }
+    /**
+     * 获取结束位置
+     * @return
+     */
+    public static int getEndIndex(int pageNum,int pageSize){
+        return pageNum*pageSize;
+    }
+
 
 }
